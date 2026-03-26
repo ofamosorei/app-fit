@@ -45,42 +45,24 @@ export class AiService {
 
     try {
       const prompt = `Você é uma nutricionista clínica e funcional especialista em emagrecimento.
-Crie um PLANO ALIMENTAR SEMANAL (7 DIAS, de Segunda a Domingo) para um paciente com as seguintes características:
+Baseado no paciente: ${weight}kg, ${height}cm, ${age} anos, Sexo ${sex === 'male' ? 'Masculino' : 'Feminino'}. Nível: ${activityLevel}. Objetivo: ${goalLabel}. Meta calórica de ${caloricTarget} kcal diárias (Déficit incluído).
 
-- Peso: ${weight}kg | Altura: ${height}cm | Idade: ${age} anos | Sexo: ${sex === 'male' ? 'Masculino' : 'Feminino'}
-- Nível de Atividade: ${activityLevel === 'intense' ? 'Intenso (Atleta/Crossfit)' : activityLevel === 'moderate' ? 'Moderado (3 a 5x por semana)' : activityLevel === 'light' ? 'Leve (1 a 3x por semana)' : 'Sedentário (Nenhuma)'}
-- Objetivo: ${goalLabel}
-- META CALÓRICA DO DIA: APROXIMADAMENTE ${caloricTarget} kcal (TDEE realizado com fator de atividade: ${tdee} kcal${goal !== 'maintenance' ? `, déficit de ${tdee - caloricTarget} kcal` : ''}).
+CRIE 3 PLANOS NUTRICIONAIS BASE (Plano A, Plano B, Plano C). O sistema no backend irá ler esses 3 planos e rotacioná-los automaticamente para preencher a semana inteira do paciente, então FOQUE apenas em criar 3 dias excelentes e variados.
+Regras:
+1. Pratos focados em ${comorbidities || 'saúde'} e adaptados para ${medications || 'sem medicamentos especiais'}.
+2. Adicione 1 Suco Detox (ex: suco verde) no desjejum de apenas um dos planos.
+3. Adicione 1 Chá Seca Barriga (ex: hibisco) no lanche da tarde de apenas um dos planos.
+4. Cada plano base deve ter 4 refeições (Café da Manhã, Almoço, Lanche, Jantar).
 
-INFORMAÇÕES CLÍNICAS OBRIGATÓRIAS DE PROTEÇÃO:
-- Condições de Saúde (Comorbidades): ${comorbidities || 'Nenhuma informada'}
-- Uso de Medicamentos: ${medications || 'Nenhum informado'}
-
-REGRAS:
-1. ADAPTAÇÃO CLÍNICA: Se houver relato de Diabetes, reduza muito carboidratos simples. Hipertensão exige redução de sódio/industrializados. Se houver intolerância declarada, faça substituições devidas.
-2. Você DEVE gerar EXATAMENTE 7 DIAS de cardápio.
-3. Use alimentos simples, comuns e baratos no Brasil.
-4. Para os dias de dieta (1=Segunda, 2=Terça, 3=Quarta, 4=Quinta, 5=Sexta):
-   - OBRIGATÓRIO: Chá seca barriga deve existir em todos os dias de Segunda a Sexta, posicionado ANTES DO ALMOÇO ou ANTES DO JANTAR.
-   - OBRIGATÓRIO: Suco Detox DEVE existir *obrigatoriamente* na Segunda(1), Quarta(3) e Sexta(5), posicionado de manhã, EM JEJUM (antes do café da manhã).
-5. Sábado (6) e Domingo (0): Não há obrigação de Chá seca barriga ou Suco Detox (a menos que a caloria permita, mas preferencialmente não use, para deixar a dieta diferente no final de semana).
-6. Refeições variadas a cada dia mas que sejam de fácil preparo (ex: ovos, frango, carne moída, salada, frutas).
-
-Formato ESTRITO esperado de saída JSON:
+Formato ESTRITO JSON:
 {
   "waterTarget": ${weight * 35},
-  "weeklyPlan": [
+  "basePlans": [
     {
-      "dayOfWeek": 0,
-      "dayName": "Domingo",
       "meals": [ { "time": "08:00", "title": "Café da manhã", "description": "...", "completed": false } ]
     },
-    { "dayOfWeek": 1, "dayName": "Segunda-feira", "meals": [...] },
-    { "dayOfWeek": 2, "dayName": "Terça-feira", "meals": [...] },
-    { "dayOfWeek": 3, "dayName": "Quarta-feira", "meals": [...] },
-    { "dayOfWeek": 4, "dayName": "Quinta-feira", "meals": [...] },
-    { "dayOfWeek": 5, "dayName": "Sexta-feira", "meals": [...] },
-    { "dayOfWeek": 6, "dayName": "Sábado", "meals": [...] }
+    { "meals": [...] },
+    { "meals": [...] }
   ]
 }`;
 
@@ -90,7 +72,29 @@ Formato ESTRITO esperado de saída JSON:
         response_format: { type: "json_object" }
       });
 
-      return JSON.parse(response.choices[0].message.content || '{}');
+      const responseText = response.choices[0].message.content || '{}';
+      const parsedData = JSON.parse(responseText);
+
+      // Mapear os 3 planos base para os 7 dias da semana
+      const weeklyPlan = [];
+      const basePlans = parsedData.basePlans || [];
+      if (basePlans.length === 0) throw new Error('Falha ao gerar base plans');
+
+      for (let i = 0; i < 7; i++) {
+        // Rotaciona: Domingo(0)->Base[0], Segunda(1)->Base[1], Terça(2)->Base[2], Quarta(3)->Base[0]...
+        const baseIndex = i % basePlans.length;
+        // Faz Deep clone das refeições para garantir instâncias isoladas
+        const clonedMeals = JSON.parse(JSON.stringify(basePlans[baseIndex].meals));
+        weeklyPlan.push({
+          dayOfWeek: i,
+          meals: clonedMeals
+        });
+      }
+
+      return {
+        waterTarget: parsedData.waterTarget || weight * 35,
+        weeklyPlan
+      };
     } catch (error) {
       console.error(error);
       throw new HttpException('Failed to generate plan', HttpStatus.INTERNAL_SERVER_ERROR);
