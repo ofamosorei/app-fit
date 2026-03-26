@@ -22,41 +22,48 @@ export default function Dashboard() {
   }, [weight, age, sex, activityLevel, router]);
 
   // Auto-generate plan with backend if none exists or is stale
-  useEffect(() => {
-    const planIsStale = plan && !plan.weeklyPlan;
-    
-    // Only fetch once natively per session to avert infinite loops if the backend fails (e.g., Render cold-starts)
-    if ((!plan || planIsStale) && weight && height && goal && age && sex && activityLevel && !loadingPlan && !fetchAttempted.current) {
-      
-      fetchAttempted.current = true;
-      setLoadingPlan(true);
-      setErrorPlan(null);
+  const generateProtocol = async () => {
+    if (fetchAttempted.current) return;
+    fetchAttempted.current = true;
+    setLoadingPlan(true);
+    setErrorPlan(null);
 
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+    const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
-      fetch(apiUrl + '/ai/generate-plan', {
+    try {
+      const res = await fetch(apiUrl + '/ai/generate-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ weight, height, age, sex, activityLevel, comorbidities, medications, goal })
-      })
-      .then(async (res) => {
-        if (!res.ok) throw new Error('Servidor ainda está ligando (Render). Aguarde!');
-        return res.json();
-      })
-      .then(data => {
-        const hydratedWeeklyPlan = data.weeklyPlan?.map((day: any) => ({
-          ...day,
-          meals: day.meals.map((m: any) => ({ ...m, completed: false }))
-        })) || [];
-        setPlan({ waterTarget: data.waterTarget || weight * 35, weeklyPlan: hydratedWeeklyPlan });
-      })
-      .catch(err => {
-        console.error("Erro ao gerar plano:", err);
-        setErrorPlan('O servidor demorou a responder (está acordando). Tente recarregar a página em 30 segundos!');
-      })
-      .finally(() => setLoadingPlan(false));
+      });
+
+      if (!res.ok) {
+        throw new Error('Servidor ainda está ligando (Render). Aguarde!');
+      }
+
+      const data = await res.json();
+      const hydratedWeeklyPlan = data.weeklyPlan?.map((day: any) => ({
+        ...day,
+        meals: day.meals.map((m: any) => ({ ...m, completed: false }))
+      })) || [];
+      
+      setPlan({ waterTarget: data.waterTarget || (weight || 0) * 35, weeklyPlan: hydratedWeeklyPlan });
+    } catch (err: any) {
+      console.error("Erro ao gerar plano:", err);
+      // Exibe a mensagem de erro exata na tela para ajudar a debugar
+      setErrorPlan(err.message || 'Erro desconhecido ao conectar no servidor.');
+      fetchAttempted.current = false; // Allow retry
+    } finally {
+      setLoadingPlan(false);
     }
-  }, [plan, weight, height, age, sex, activityLevel, comorbidities, medications, goal, setPlan]);
+  };
+
+  useEffect(() => {
+    const planIsStale = plan && !plan.weeklyPlan;
+    if ((!plan || planIsStale) && weight && height && goal && age && sex && activityLevel) {
+      generateProtocol();
+    }
+  }, [plan, weight, height, age, sex, activityLevel, comorbidities, medications, goal]);
 
   const todayDayOfWeek = new Date().getDay();
   const todaysPlan = plan?.weeklyPlan?.find(p => p.dayOfWeek === todayDayOfWeek);
@@ -112,10 +119,7 @@ export default function Dashboard() {
                <p className="text-sm text-rose-600 mt-1 font-medium">{errorPlan}</p>
              </div>
              <button 
-               onClick={() => {
-                 fetchAttempted.current = false;
-                 setLoadingPlan(true);
-               }}
+               onClick={() => generateProtocol()}
                className="mt-2 px-6 py-2.5 bg-rose-500 text-white font-bold rounded-xl shadow-sm hover:bg-rose-600 transition-colors"
              >
                Tentar Novamente
