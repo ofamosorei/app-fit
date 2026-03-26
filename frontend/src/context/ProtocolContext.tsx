@@ -58,6 +58,7 @@ interface ProtocolContextType {
   addWater: (ml: number) => void;
   undoWater: (ml: number) => void;
   addProgress: (weight: number) => void;
+  deleteProgress: (date: string) => void;
   toggleMeal: (dayOfWeek: number, mealIndex: number) => void;
 }
 
@@ -161,6 +162,20 @@ export const ProtocolProvider = ({ children }: { children: React.ReactNode }) =>
     setWeightState(w);
   };
 
+  const deleteProgress = (date: string) => {
+    setProgressState(prev => {
+      const newProgress = prev.filter(p => p.date !== date);
+      
+      // If we deleted a log, we should revert the global weight to the next most recent one
+      if (newProgress.length > 0) {
+        const sorted = [...newProgress].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setWeightState(sorted[0].weight);
+      }
+      
+      return newProgress;
+    });
+  };
+
   const toggleMeal = (dayOfWeek: number, mealIndex: number) => {
     setPlanState(prev => {
       if (!prev || !prev.weeklyPlan) return prev;
@@ -183,7 +198,7 @@ export const ProtocolProvider = ({ children }: { children: React.ReactNode }) =>
       weight, height, age, sex, activityLevel, comorbidities, medications, goal, targetWeight, plan,
       waterLog, waterConsumed, waterTarget, progress, streak,
       setWeight, setHeight, setAge, setSex, setActivityLevel, setComorbidities, setMedications,
-      setGoal, setTargetWeight, setPlan, addWater, undoWater, addProgress, toggleMeal
+      setGoal, setTargetWeight, setPlan, addWater, undoWater, addProgress, deleteProgress, toggleMeal
     }}>
       {children}
     </ProtocolContext.Provider>

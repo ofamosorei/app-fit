@@ -2,11 +2,11 @@
 
 import { useProtocol } from '@/context/ProtocolContext';
 import { motion } from 'framer-motion';
-import { LineChart as ChartIcon, Plus, Trophy, ArrowDown, ArrowUp, Minus } from 'lucide-react';
+import { LineChart as ChartIcon, Plus, Trophy, ArrowDown, ArrowUp, Minus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function ProgressPage() {
-  const { progress, addProgress, weight, targetWeight, streak } = useProtocol();
+  const { progress, addProgress, weight, targetWeight, streak, deleteProgress } = useProtocol();
   const [newWeight, setNewWeight] = useState(weight || 70);
   const [showInput, setShowInput] = useState(false);
 
@@ -96,12 +96,25 @@ export default function ProgressPage() {
                     <p className="font-extrabold text-slate-800 text-[17px] tracking-tight">{entry.weight.toFixed(1)} <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">kg</span></p>
                     <p className="text-[11px] text-slate-500 font-medium mt-0.5">{new Date(entry.date + 'T00:00:00').toLocaleDateString('pt-BR')}</p>
                   </div>
-                  {prev && (
-                    <div className={`flex items-center gap-1.5 text-[11px] font-extrabold tracking-tight px-3 py-1.5 rounded-full ${diff < 0 ? 'bg-emerald-100 text-emerald-600' : diff > 0 ? 'bg-rose-100 text-rose-600' : 'bg-slate-200 text-slate-600'}`}>
-                      {diff < 0 ? <ArrowDown className="w-[14px] h-[14px] stroke-[3]" /> : diff > 0 ? <ArrowUp className="w-[14px] h-[14px] stroke-[3]" /> : <Minus className="w-[14px] h-[14px] stroke-[3]" />}
-                      {Math.abs(diff).toFixed(1)}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {prev && (
+                      <div className={`flex items-center gap-1.5 text-[11px] font-extrabold tracking-tight px-3 py-1.5 rounded-full ${diff < 0 ? 'bg-emerald-100 text-emerald-600' : diff > 0 ? 'bg-rose-100 text-rose-600' : 'bg-slate-200 text-slate-600'}`}>
+                        {diff < 0 ? <ArrowDown className="w-[14px] h-[14px] stroke-[3]" /> : diff > 0 ? <ArrowUp className="w-[14px] h-[14px] stroke-[3]" /> : <Minus className="w-[14px] h-[14px] stroke-[3]" />}
+                        {Math.abs(diff).toFixed(1)}
+                      </div>
+                    )}
+                    <button 
+                      onClick={() => {
+                        if (confirm('Deseja excluir este registro de peso?')) {
+                          deleteProgress(entry.date);
+                        }
+                      }}
+                      className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-colors"
+                      title="Excluir medição"
+                    >
+                      <Trash2 className="w-[18px] h-[18px]" />
+                    </button>
+                  </div>
                 </div>
               );
             })
