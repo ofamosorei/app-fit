@@ -4,13 +4,15 @@ import { useProtocol } from '@/context/ProtocolContext';
 import { motion } from 'framer-motion';
 import { Calendar, Droplets, Target, Flame, ArrowRight, Activity, Plus } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
   const router = useRouter();
   const { weight, targetWeight, streak, waterConsumed, waterTarget, plan, setPlan, goal, height, age, sex, activityLevel, comorbidities, medications, addProgress, progress } = useProtocol();
   const [loadingPlan, setLoadingPlan] = useState(false);
+  const [errorPlan, setErrorPlan] = useState<string | null>(null);
+  const fetchAttempted = useRef(false);
 
   // Redirect to onboarding if profile is incomplete
   useEffect(() => {
@@ -19,17 +21,28 @@ export default function Dashboard() {
     }
   }, [weight, age, sex, activityLevel, router]);
 
-  // Auto-generate plan with backend if none exists or is stale (old fallback)
+  // Auto-generate plan with backend if none exists or is stale
   useEffect(() => {
     const planIsStale = plan && !plan.weeklyPlan;
-    if ((!plan || planIsStale) && weight && height && goal && age && sex && activityLevel && !loadingPlan) {
+    
+    // Only fetch once natively per session to avert infinite loops if the backend fails (e.g., Render cold-starts)
+    if ((!plan || planIsStale) && weight && height && goal && age && sex && activityLevel && !loadingPlan && !fetchAttempted.current) {
+      
+      fetchAttempted.current = true;
       setLoadingPlan(true);
-      fetch((process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001') + '/ai/generate-plan', {
+      setErrorPlan(null);
+
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+
+      fetch(apiUrl + '/ai/generate-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ weight, height, age, sex, activityLevel, comorbidities, medications, goal })
       })
-      .then(res => res.json())
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Servidor ainda está ligando (Render). Aguarde!');
+        return res.json();
+      })
       .then(data => {
         const hydratedWeeklyPlan = data.weeklyPlan?.map((day: any) => ({
           ...day,
@@ -38,11 +51,12 @@ export default function Dashboard() {
         setPlan({ waterTarget: data.waterTarget || weight * 35, weeklyPlan: hydratedWeeklyPlan });
       })
       .catch(err => {
-        console.error(err);
+        console.error("Erro ao gerar plano:", err);
+        setErrorPlan('O servidor demorou a responder (está acordando). Tente recarregar a página em 30 segundos!');
       })
       .finally(() => setLoadingPlan(false));
     }
-  }, [plan, weight, height, age, sex, activityLevel, comorbidities, medications, goal, setPlan, loadingPlan]);
+  }, [plan, weight, height, age, sex, activityLevel, comorbidities, medications, goal, setPlan]);
 
   const todayDayOfWeek = new Date().getDay();
   const todaysPlan = plan?.weeklyPlan?.find(p => p.dayOfWeek === todayDayOfWeek);
@@ -77,14 +91,35 @@ export default function Dashboard() {
 
       <div className="p-6 space-y-6">
         
-        {/* Loading Overlay */}
-        {loadingPlan && (
+        {/* Loading & Error Overlays */}
+        {loadingPlan && !errorPlan && (
           <div className="animate-pulse bg-emerald-50 border border-emerald-100 p-6 rounded-[2rem] flex flex-col items-center justify-center space-y-4 shadow-sm">
             <Activity className="w-10 h-10 text-emerald-500 animate-bounce" />
             <div className="text-center">
-              <h3 className="font-bold text-emerald-800">A IA está gerando seu plano semanal perfeito...</h3>
-              <p className="text-sm text-emerald-600 mt-1 font-medium">Analisando suas informações clínicas e calculando macronutrientes do mês.</p>
+              <h3 className="font-bold text-emerald-800">A IA está gerando seu Protocolo...</h3>
+              <p className="text-sm text-emerald-600 mt-1 font-medium">Isso leva de 15 a 45 segundos dependendo do servidor.</p>
             </div>
+          </div>
+        )}
+
+        {errorPlan && (
+          <div className="bg-rose-50 border border-rose-100 p-6 rounded-[2rem] flex flex-col items-center justify-center space-y-4 shadow-sm">
+             <div className="w-12 h-12 rounded-full bg-rose-200 flex items-center justify-center">
+               <span className="text-xl">🐢</span>
+             </div>
+             <div className="text-center">
+               <h3 className="font-bold text-rose-800">O servidor está acordando...</h3>
+               <p className="text-sm text-rose-600 mt-1 font-medium">{errorPlan}</p>
+             </div>
+             <button 
+               onClick={() => {
+                 fetchAttempted.current = false;
+                 setLoadingPlan(true);
+               }}
+               className="mt-2 px-6 py-2.5 bg-rose-500 text-white font-bold rounded-xl shadow-sm hover:bg-rose-600 transition-colors"
+             >
+               Tentar Novamente
+             </button>
           </div>
         )}
 
