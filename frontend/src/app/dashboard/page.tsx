@@ -28,7 +28,7 @@ export default function Dashboard() {
     setLoadingPlan(true);
     setErrorPlan(null);
 
-    const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+    const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://app-fit-backend.onrender.com').replace(/\/$/, '');
 
     try {
       const res = await fetch(apiUrl + '/ai/generate-plan', {
