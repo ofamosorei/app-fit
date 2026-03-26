@@ -48,11 +48,11 @@ export class AiService {
 Baseado no paciente: ${weight}kg, ${height}cm, ${age} anos, Sexo ${sex === 'male' ? 'Masculino' : 'Feminino'}. Nível: ${activityLevel}. Objetivo: ${goalLabel}. Meta calórica de ${caloricTarget} kcal diárias (Déficit incluído).
 
 CRIE 3 PLANOS NUTRICIONAIS BASE (Plano A, Plano B, Plano C). O sistema no backend irá ler esses 3 planos e rotacioná-los automaticamente para preencher a semana inteira do paciente, então FOQUE apenas em criar 3 dias excelentes e variados.
-Regras:
-1. Pratos focados em ${comorbidities || 'saúde'} e adaptados para ${medications || 'sem medicamentos especiais'}.
-2. Adicione 1 Suco Detox (ex: suco verde) no desjejum de apenas um dos planos.
-3. Adicione 1 Chá Seca Barriga (ex: hibisco) no lanche da tarde de apenas um dos planos.
-4. Cada plano base deve ter 4 refeições (Café da Manhã, Almoço, Lanche, Jantar).
+Regras OBRIGATÓRIAS:
+1. USE APENAS ALIMENTOS SIMPLES, FÁCEIS DE ENCONTRAR E BARATOS NO BRASIL (Ovos, frango, patinho moído, arroz, feijão, aveia, frutas básicas, etc). Nada caro ou importado.
+2. Pratos focados em ${comorbidities || 'saúde'} e adaptados para ${medications || 'sem medicamentos especiais'}.
+3. NÃO adicione chás nem suco detox no menu. (Nós do sistema faremos a adição nas datas certas).
+4. Cada plano base deve ter APENAS as 4 refeições principais (Café da Manhã, Almoço, Lanche da Tarde, Jantar).
 
 Formato ESTRITO JSON:
 {
@@ -81,10 +81,42 @@ Formato ESTRITO JSON:
       if (basePlans.length === 0) throw new Error('Falha ao gerar base plans');
 
       for (let i = 0; i < 7; i++) {
-        // Rotaciona: Domingo(0)->Base[0], Segunda(1)->Base[1], Terça(2)->Base[2], Quarta(3)->Base[0]...
         const baseIndex = i % basePlans.length;
-        // Faz Deep clone das refeições para garantir instâncias isoladas
         const clonedMeals = JSON.parse(JSON.stringify(basePlans[baseIndex].meals));
+        
+        // Regra Dinâmica do Suco Detox: Segunda(1), Quarta(3) e Sexta(5) em jejum pela manhã
+        if ([1, 3, 5].includes(i)) {
+          clonedMeals.unshift({
+            type: "Desjejum",
+            time: "06:30",
+            name: "Suco Detox Seca Barriga",
+            description: "1 folha de couve, 1/2 maçã, 1 limão espremido e 200ml de água (Bater e beber em jejum)",
+            calories: 60,
+            protein: 2,
+            carbs: 14,
+            fat: 0,
+            completed: false
+          });
+        }
+        
+        // Regra Dinâmica do Chá: Segunda(1) a Quinta(4) antes do almoço (ou jantar)
+        if ([1, 2, 3, 4].includes(i)) {
+          const almoçoIndex = clonedMeals.findIndex((m: any) => m.title?.toLowerCase().includes('almoço') || m.type?.toLowerCase().includes('almoço')) || 1;
+          const finalInsertIndex = almoçoIndex > -1 ? almoçoIndex : 1; 
+
+          clonedMeals.splice(finalInsertIndex, 0, {
+            type: "Lanche",
+            time: "11:30",
+            name: "Chá Termogênico Padrão",
+            description: "1 xícara de Chá Verde, Hibisco ou Cavalinha sem açúcar (Para acelerar o metabolismo)",
+            calories: 5,
+            protein: 0,
+            carbs: 1,
+            fat: 0,
+            completed: false
+          });
+        }
+
         weeklyPlan.push({
           dayOfWeek: i,
           meals: clonedMeals
