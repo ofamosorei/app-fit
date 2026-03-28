@@ -31,12 +31,16 @@ export default function Dashboard() {
     }
   }, [user, weight, height, age, sex, activityLevel, goal, targetWeight, plan]);
 
-  // Redirect to onboarding if profile is incomplete (Checks user directly)
+  // Redirect to onboarding if profile is incomplete
+  // FIX: usa Protocol context como fallback porque os dados são setados IMEDIATAMENTE
+  // no onboarding antes do router.push. O AuthContext user pode estar desatualizado
+  // (race condition) enquanto a re-fetch assíncrona do appfit:profile-updated ainda não terminou.
   useEffect(() => {
-    if (user && (!user.weight || !user.age || !user.sex || !user.activityLevel || !user.goal)) {
+    const hasLocalData = !!(weight && age && sex && activityLevel && goal);
+    if (user && !hasLocalData && (!user.weight || !user.age || !user.sex || !user.activityLevel || !user.goal)) {
       router.replace('/onboarding');
     }
-  }, [user, router]);
+  }, [user, weight, age, sex, activityLevel, goal, router]);
 
   // Auto-generate plan with backend se o plano não existe e o Onboarding FOI preenchido
   const generateProtocol = async () => {
