@@ -1,17 +1,17 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
+import { motion, AnimatePresence, useInView } from 'framer-motion';
+import {
   ArrowRight, ShieldCheck, CheckCircle2, ChevronDown, Check, PlayCircle,
   Camera, Utensils, Zap, Droplets, Clock, MessageSquare, Star, Award, Search, Activity, Fingerprint, RefreshCcw, Lock, User, ShoppingCart, Repeat
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState, useRef } from 'react';
 
 // Timer component for Scarcity
 const CountdownTimer = () => {
   const [timeLeft, setTimeLeft] = useState(14 * 60 + 59);
-  
+
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => prev > 0 ? prev - 1 : 0);
@@ -29,11 +29,40 @@ const CountdownTimer = () => {
   );
 };
 
+// Animated number counter component
+const AnimatedCounter = ({ value, suffix = "" }: { value: number, suffix?: string }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    if (inView) {
+      const duration = 2000; // 2 seconds
+      const startTime = performance.now();
+
+      const animate = (time: number) => {
+        const elapsed = time - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+
+        setDisplayValue(Math.floor(easeOutQuart * value));
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+      requestAnimationFrame(animate);
+    }
+  }, [inView, value]);
+
+  return <span ref={ref}>{displayValue}{suffix}</span>;
+};
+
 // Reusable CSS Phone component
 const PhoneMockup = ({ children, dark = false }: { children?: ReactNode, dark?: boolean }) => (
-  <div className={`relative mx-auto w-[250px] h-[480px] sm:w-[280px] sm:h-[540px] rounded-[40px] border-[8px] ${dark ? 'border-[#222] bg-[#111]' : 'border-slate-200 bg-white'} shadow-2xl overflow-hidden flex flex-col`}>
-    <div className={`absolute top-0 inset-x-0 h-6 flex justify-center z-20`}>
-      <div className={`w-32 h-6 ${dark ? 'bg-[#222]' : 'bg-slate-200'} rounded-b-2xl`}></div>
+  <div className={`relative mx-auto w-[310px] h-[600px] sm:w-[380px] sm:h-[720px] rounded-[40px] sm:rounded-[48px] border-[8px] sm:border-[10px] ${dark ? 'border-[#222] bg-[#111]' : 'border-slate-200 bg-white'} shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col`}>
+    <div className={`absolute top-0 inset-x-0 h-6 sm:h-7 flex justify-center z-20`}>
+      <div className={`w-32 sm:w-40 h-6 sm:h-7 ${dark ? 'bg-[#222]' : 'bg-slate-200'} rounded-b-2xl sm:rounded-b-3xl`}></div>
     </div>
     <div className="flex-1 w-full h-full p-4 pt-12 flex flex-col items-center justify-center relative z-10">
       {children || <div className="w-16 h-16 rounded-full bg-indigo-500/10 text-indigo-500 flex items-center justify-center"><Activity /></div>}
@@ -60,7 +89,7 @@ export default function LandingPage() {
   }, []);
 
   const primaryBtn = (text: string) => (
-    <button 
+    <button
       onClick={() => router.push('/onboarding')}
       className="bg-[#21C55D] hover:bg-[#16A34A] text-white px-8 sm:px-14 py-5 rounded-full font-black text-[18px] sm:text-[20px] transition-all hover:scale-105 active:scale-95 shadow-[0_15px_35px_-5px_rgba(34,197,94,0.4)] tracking-wide border-b-4 border-[#15803d] flex items-center gap-2 mx-auto justify-center"
     >
@@ -70,13 +99,13 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-indigo-500/20 overflow-x-hidden">
-      
+
       {/* Header */}
       <header className="absolute top-0 left-0 right-0 p-4 sm:p-6 z-50 flex items-center justify-between">
         <div className="font-black text-xl tracking-tighter text-slate-900">
           SECA<span className="text-emerald-500">APP</span>
         </div>
-        <button 
+        <button
           onClick={() => router.push('/login')}
           className="bg-white/80 backdrop-blur-md border border-slate-200 shadow-sm text-slate-700 hover:text-emerald-600 hover:border-emerald-200 px-5 py-2.5 rounded-full font-bold text-sm transition-all focus:outline-none focus:ring-4 ring-emerald-500/10 active:scale-95 flex items-center gap-2"
         >
@@ -88,83 +117,106 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative pt-24 pb-48 px-6 overflow-hidden bg-white text-center">
         <div className="absolute inset-0 opacity-[0.25] pointer-events-none">
-           <div className="absolute top-[20%] left-[10%] w-3 h-3 bg-red-400 rounded-sm rotate-12"></div>
-           <div className="absolute top-[30%] right-[15%] w-4 h-4 bg-emerald-400 rounded-full"></div>
-           <div className="absolute top-[60%] left-[20%] w-3 h-3 bg-yellow-400 rotate-45"></div>
-           <div className="absolute top-[15%] right-[25%] w-2 h-2 bg-indigo-400 rounded-full"></div>
+          <motion.div animate={{ y: [0, -20, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }} className="absolute top-[20%] left-[10%] w-3 h-3 bg-red-400 rounded-sm rotate-12" />
+          <motion.div animate={{ y: [0, 20, 0] }} transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }} className="absolute top-[30%] right-[15%] w-4 h-4 bg-emerald-400 rounded-full" />
+          <motion.div animate={{ y: [0, -15, 0] }} transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut" }} className="absolute top-[60%] left-[20%] w-3 h-3 bg-yellow-400 rotate-45" />
+          <motion.div animate={{ y: [0, 25, 0] }} transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }} className="absolute top-[15%] right-[25%] w-2 h-2 bg-indigo-400 rounded-full" />
         </div>
-        
+
         <div className="relative z-10 max-w-4xl mx-auto space-y-6 flex flex-col items-center">
-          <div className="inline-flex items-center gap-2 bg-red-50 text-red-600 px-4 py-1.5 rounded-full font-bold text-xs tracking-widest uppercase border border-red-100 mb-2">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="inline-flex items-center gap-2 bg-red-50 text-red-600 px-4 py-1.5 rounded-full font-bold text-xs tracking-widest uppercase border border-red-100 mb-2">
             <Lock className="w-3.5 h-3.5" /> está pronta para transformar seu corpo e sua saúde?
-          </div>
-          <h1 className="text-[34px] sm:text-[58px] font-black leading-[1.1] tracking-tight text-slate-900 drop-shadow-sm">
+          </motion.div>
+
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="text-[34px] sm:text-[58px] font-black leading-[1.1] tracking-tight text-slate-900 drop-shadow-sm">
             Um aplicativo que cuida da sua alimentação e te ajuda a desinchar com <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">apoio de nutricionista</span>
-          </h1>
-          <p className="text-lg sm:text-[22px] text-slate-500 font-medium max-w-3xl mx-auto leading-snug">
+          </motion.h1>
+
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="text-lg sm:text-[22px] text-slate-500 font-medium max-w-3xl mx-auto leading-snug">
             Cardápios prontos, chás seca barriga, sucos detox e cálculo de calorias por foto, tudo com suporte e comunidade de alunos no WhatsApp.
-          </p>
-          <div className="pt-6 pb-6 w-full flex flex-col items-center">
+          </motion.p>
+
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.3, type: "spring", stiffness: 200 }} className="pt-6 pb-6 w-full flex flex-col items-center">
             {primaryBtn("QUERO PERDER 10KG AGORA")}
             <p className="text-xs text-slate-400 mt-4 font-semibold flex items-center gap-1 justify-center"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Acesso ao pacote unificado (Dietas + Scanner IA).</p>
-          </div>
+          </motion.div>
 
-          <div className="relative w-full max-w-md mx-auto mt-6">
-             <PhoneMockup>
-                {/* Vídeo/Imagem mostrando o App em uso logo de cara */}
-                <img 
-                  src="/app-dashboard.png" 
-                  alt="Dashboard App" 
-                  className="w-full h-full object-cover object-top rounded-[32px] absolute inset-0 z-0 bg-slate-100" 
-                />
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.4 }}
+            className="relative w-full max-w-md mx-auto mt-16 sm:mt-24 origin-top"
+            whileInView={{ scale: 1.15 }} // Aumenta 15% quando scrolla para baixo
+            viewport={{ margin: "-100px 0px 0px 0px", once: false, amount: "some" }}
+          >
+            <PhoneMockup>
+              {/* Vídeo/Imagem mostrando o App em uso logo de cara */}
+              <img
+                src="/app-dashboard.png"
+                alt="Dashboard App"
+                className="w-full h-full object-cover object-top rounded-[32px] absolute inset-0 z-0 bg-slate-100"
+              />
 
-                {/* DYNAMIC NOTIFICATIONS OVERLAY (Evolução Contínua) */}
-                <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[90%] z-20 h-20">
-                  <AnimatePresence mode="wait">
-                    {notifications.map((notif, idx) => {
-                      if (idx !== activeNotification) return null;
-                      const IconTag = notif.icon;
-                      return (
-                        <motion.div 
-                          key={idx}
-                          initial={{ y: -40, opacity: 0, scale: 0.95 }} 
-                          animate={{ y: 0, opacity: 1, scale: 1 }} 
-                          exit={{ y: -20, opacity: 0, scale: 0.95 }}
-                          transition={{ type: 'spring', stiffness: 350, damping: 25 }} 
-                          className={`w-full bg-white/95 backdrop-blur-md rounded-[20px] p-3 shadow-[0_15px_35px_rgba(0,0,0,0.15)] flex gap-3 items-center border ${notif.border} ${notif.glow} absolute top-0 left-0`}
-                        >
-                          <div className={`w-10 h-10 bg-gradient-to-tr ${notif.color} flex items-center justify-center rounded-full text-white shrink-0 shadow-inner animate-pulse`}>
-                            <IconTag className="w-5 h-5" />
-                          </div>
-                          <div className="text-left w-full overflow-hidden">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1 truncate">{notif.title}</p>
-                            <p className="text-[13px] font-black text-slate-800 leading-tight truncate">{notif.text}</p>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </AnimatePresence>
+              {/* DYNAMIC NOTIFICATIONS OVERLAY (Evolução Contínua) */}
+              <div className="absolute top-8 sm:top-10 left-1/2 -translate-x-1/2 w-[90%] z-20">
+                <AnimatePresence mode="wait">
+                  {notifications.map((notif, idx) => {
+                    if (idx !== activeNotification) return null;
+                    const IconTag = notif.icon;
+                    return (
+                      <motion.div
+                        key={idx}
+                        initial={{ y: -40, opacity: 0, scale: 0.95 }}
+                        animate={{ y: 0, opacity: 1, scale: 1 }}
+                        exit={{ y: -20, opacity: 0, scale: 0.95 }}
+                        transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                        className={`w-full bg-white/95 backdrop-blur-md rounded-[20px] p-4 shadow-[0_15px_35px_rgba(0,0,0,0.15)] flex gap-3 items-center border ${notif.border} ${notif.glow} absolute top-0 left-0`}
+                      >
+                        <div className={`w-10 h-10 bg-gradient-to-tr ${notif.color} flex items-center justify-center rounded-full text-white shrink-0 shadow-inner animate-pulse`}>
+                          <IconTag className="w-5 h-5" />
+                        </div>
+                        <div className="text-left w-full">
+                          <p className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">{notif.title}</p>
+                          <p className="text-[14px] sm:text-[15px] font-black text-slate-800 leading-tight">{notif.text}</p>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+            </PhoneMockup>
+
+            {/* Stats Card Overlapping (Desktop) / Abaixo (Mobile) */}
+            <div className="mt-12 mx-auto sm:mt-0 sm:absolute sm:-bottom-32 sm:left-1/2 sm:-translate-x-1/2 w-[95%] sm:w-[800px] bg-slate-50 rounded-[32px] p-6 sm:p-8 shadow-2xl border border-slate-200 flex flex-col items-center z-30 transform transition-transform">
+              <div className="inline-flex flex-col items-center justify-center gap-1 mb-6">
+                <span className="text-2xl">🏆</span>
+                <span className="text-slate-500 font-black uppercase tracking-widest text-[11px] sm:text-[13px]">Veja nossos números</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-10 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 w-full text-center">
+                <div className="flex flex-col items-center justify-center pt-4 sm:pt-0">
+                  <div className="text-[44px] sm:text-[52px] font-black text-[#8B5CF6] tracking-tighter leading-none mb-1">
+                    +<AnimatedCounter value={500} suffix="mil" />
+                  </div>
+                  <p className="font-bold text-slate-800 text-[14px] sm:text-[15px]">Alimentos já registrados</p>
                 </div>
-             </PhoneMockup>
-             
-             {/* Stats Card Overlapping */}
-             <div className="absolute -bottom-16 sm:-bottom-20 left-1/2 -translate-x-1/2 w-[90%] sm:w-[580px] bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] border border-slate-100 p-6 sm:p-8 flex justify-between items-center z-30 transform hover:scale-[1.02] transition-transform">
-                <div className="text-center flex-1">
-                  <p className="text-indigo-600 font-black text-2xl sm:text-[42px] tracking-tighter leading-none">-10kg</p>
-                  <p className="text-[10px] sm:text-[12px] text-slate-500 font-bold uppercase tracking-widest mt-2">Meta Central (30 dias)</p>
+
+                <div className="flex flex-col items-center justify-center pt-4 sm:pt-0">
+                  <div className="text-[44px] sm:text-[52px] font-black text-[#8B5CF6] tracking-tighter leading-none mb-1">
+                    +<AnimatedCounter value={2000} suffix="kg" />
+                  </div>
+                  <p className="font-bold text-slate-800 text-[14px] sm:text-[15px]">Perdidos</p>
                 </div>
-                <div className="w-px h-16 bg-slate-200"></div>
-                <div className="text-center flex-1">
-                  <p className="text-indigo-600 font-black text-2xl sm:text-[42px] tracking-tighter leading-none">Instant</p>
-                  <p className="text-[10px] sm:text-[12px] text-slate-500 font-bold uppercase tracking-widest mt-2">Scanner (Zero Cálculo)</p>
+
+                <div className="flex flex-col items-center justify-center pt-4 sm:pt-0">
+                  <div className="text-[44px] sm:text-[52px] font-black text-[#8B5CF6] tracking-tighter leading-none mb-1">
+                    +<AnimatedCounter value={10} suffix="mil" />
+                  </div>
+                  <p className="font-bold text-slate-800 text-[14px] sm:text-[15px]">Pessoas utilizam diariamente</p>
                 </div>
-                <div className="w-px h-16 bg-slate-200"></div>
-                <div className="text-center flex-1">
-                  <p className="text-indigo-600 font-black text-2xl sm:text-[42px] tracking-tighter leading-none">Zero</p>
-                  <p className="text-[10px] sm:text-[12px] text-slate-500 font-bold uppercase tracking-widest mt-2">Receitas Complexas</p>
-                </div>
-             </div>
-          </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -214,8 +266,8 @@ export default function LandingPage() {
             </p>
           </motion.div>
           <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="order-1 sm:order-2 flex justify-center">
-             <div className="relative w-full max-w-[280px] sm:max-w-[340px] rounded-[32px] overflow-hidden shadow-2xl border-[8px] border-white bg-slate-100 rotate-2 hover:rotate-0 transition-transform duration-500">
-              <img src="/scanner-pov.png" alt="POV Tirar Foto" className="w-full h-auto object-cover aspect-[9/16]" />
+            <div className="relative w-full max-w-[280px] sm:max-w-[340px] rounded-[32px] overflow-hidden shadow-2xl border-[8px] border-white bg-slate-100 rotate-2 hover:rotate-0 transition-transform duration-500">
+              <img src="/scanner-pov.gif" alt="POV Tirar Foto (Demo Scanner)" className="w-full h-auto object-cover aspect-[9/16]" />
               <div className="absolute top-4 right-4 bg-emerald-500 text-white rounded-full p-2 shadow-lg animate-bounce hidden sm:block">
                 <Check className="w-6 h-6 stroke-[3]" />
               </div>
@@ -264,26 +316,26 @@ export default function LandingPage() {
       <section className="bg-[#050505] text-white py-24 px-6 border-b border-white/5 relative overflow-hidden">
         <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[400px] h-[400px] bg-indigo-600/10 blur-[120px] rounded-full"></div>
         <div className="max-w-5xl mx-auto grid md:grid-cols-[1fr_2fr] gap-12 items-center relative z-10">
-           <div className="w-full aspect-square bg-[#111] rounded-[36px] overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center p-2 relative">
-             <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-transparent"></div>
-             <img src="/dra.png" alt="Dra. Validação" className="w-full h-full object-cover object-top rounded-[28px] opacity-90" />
-           </div>
-           
-           <div className="space-y-6 text-center md:text-left">
-             <div className="inline-block bg-indigo-500/20 text-indigo-400 font-bold px-4 py-1.5 rounded-full text-sm uppercase tracking-widest border border-indigo-500/30">
-                Endosso Clínico do App
-             </div>
-             <h2 className="text-[32px] md:text-[42px] font-black leading-tight tracking-tight">
-               "Emagrecer não é fome, é sobre organizar a confusão alimentar de forma mecânica e simples."
-             </h2>
-             <p className="text-lg text-slate-400">
-               "Minha experiência de 8 anos validou que fornecer um cardápio complexo afasta os pacientes dos primeiros 10kg de meta. Com as listas automáticas do SECA APP e a clareza nas substituições da rotina, a tecnologia vira o 'nutricionista de controle' morando no seu bolso."
-             </p>
-             <div className="pt-4 mt-4 border-t border-slate-800">
-               <p className="font-bold text-xl text-white">Dra. Nome da Nutricionista</p>
-               <p className="text-indigo-400 font-medium text-sm mt-1">Nutricionista Especialista — Pós Graduada (Substitua no app pelo seu perfil)</p>
-             </div>
-           </div>
+          <div className="w-full aspect-square bg-[#111] rounded-[36px] overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center p-2 relative">
+            <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-transparent"></div>
+            <img src="/dra.png" alt="Dra. Validação" className="w-full h-full object-cover object-top rounded-[28px] opacity-90" />
+          </div>
+
+          <div className="space-y-6 text-center md:text-left">
+            <div className="inline-block bg-indigo-500/20 text-indigo-400 font-bold px-4 py-1.5 rounded-full text-sm uppercase tracking-widest border border-indigo-500/30">
+              Aprovado por Nutricionistas
+            </div>
+            <h2 className="text-[32px] md:text-[42px] font-black leading-tight tracking-tight">
+              "Emagrecer não é fome, é sobre organizar a confusão alimentar de forma mecânica e simples."
+            </h2>
+            <p className="text-lg text-slate-400">
+              "Minha experiência de 8 anos validou que fornecer um cardápio complexo afasta os pacientes dos primeiros 10kg de meta. Com as listas automáticas do SECA APP e a clareza nas substituições da rotina, a tecnologia vira o 'nutricionista de controle' morando no seu bolso."
+            </p>
+            <div className="pt-4 mt-4 border-t border-slate-800">
+              <p className="font-bold text-xl text-white">Dra. Nome da Nutricionista</p>
+              <p className="text-indigo-400 font-medium text-sm mt-1">Nutricionista Especialista — Pós Graduada (Substitua no app pelo seu perfil)</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -295,30 +347,30 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch h-full">
             <div className="w-full md:w-1/3 min-h-[420px] bg-slate-50 rounded-[32px] overflow-hidden relative group flex flex-col p-10 shadow-sm border border-slate-200 justify-between items-start text-left flex-shrink-0 transition-transform hover:-translate-y-2">
-               <div className="text-yellow-400 flex gap-1"><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /></div>
-               <p className="font-bold text-slate-700 text-[18px] leading-relaxed italic border-t border-slate-200 pt-6 my-6 flex-1">"Fui pro mercado, abri a lista das minhas compras no app. Resolvido. Em 4 semanas já estava com -6kg bebendo as receitas certas."</p>
-               <div className="w-full">
-                  <div className="font-black text-slate-900 text-lg">Bruna T.</div>
-                  <div className="text-emerald-500 font-bold text-xs uppercase pt-1">-6 KG (MÊS 1)</div>
-               </div>
+              <div className="text-yellow-400 flex gap-1"><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /></div>
+              <p className="font-bold text-slate-700 text-[18px] leading-relaxed italic border-t border-slate-200 pt-6 my-6 flex-1">"Fui pro mercado, abri a lista das minhas compras no app. Resolvido. Em 4 semanas já estava com -6kg bebendo as receitas certas."</p>
+              <div className="w-full">
+                <div className="font-black text-slate-900 text-lg">Bruna T.</div>
+                <div className="text-emerald-500 font-bold text-xs uppercase pt-1">-6 KG (MÊS 1)</div>
+              </div>
             </div>
 
             <div className="w-full md:w-1/3 min-h-[420px] bg-slate-50 rounded-[32px] overflow-hidden relative group flex flex-col p-10 shadow-sm border border-slate-200 justify-between items-start text-left flex-shrink-0 transition-transform hover:-translate-y-2">
-               <div className="text-yellow-400 flex gap-1"><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /></div>
-               <p className="font-bold text-slate-700 text-[18px] leading-relaxed italic border-t border-slate-200 pt-6 my-6 flex-1">"A facilidade brutal do Scanner apagou meu medo de falhar ao sair num sábado à noite."</p>
-               <div className="w-full">
-                  <div className="font-black text-slate-900 text-lg">Amanda F.</div>
-                  <div className="text-emerald-500 font-bold text-xs uppercase pt-1">CONTROLE TOTAL MANTIDO</div>
-               </div>
+              <div className="text-yellow-400 flex gap-1"><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /></div>
+              <p className="font-bold text-slate-700 text-[18px] leading-relaxed italic border-t border-slate-200 pt-6 my-6 flex-1">"A facilidade brutal do Scanner apagou meu medo de falhar ao sair num sábado à noite."</p>
+              <div className="w-full">
+                <div className="font-black text-slate-900 text-lg">Amanda F.</div>
+                <div className="text-emerald-500 font-bold text-xs uppercase pt-1">CONTROLE TOTAL MANTIDO</div>
+              </div>
             </div>
 
-             <div className="w-full md:w-1/3 min-h-[420px] bg-slate-100 rounded-[32px] overflow-hidden relative group flex flex-col p-10 shadow-lg border-2 border-slate-50 justify-between items-start text-left bg-gradient-to-br from-indigo-950 to-slate-900 flex-shrink-0 transition-transform hover:-translate-y-2">
-               <div className="text-yellow-400 flex gap-1"><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /></div>
-               <p className="font-bold text-white/95 text-[20px] leading-relaxed flex-1 mt-6">"É tipo colocar um 'cheat mode' ativado na vida. Muito prático saber só fazer substituições quando falta frango. Emagreci."</p>
-               <div className="w-full">
-                  <div className="font-black text-white text-xl">Mariana Lopes</div>
-                  <div className="text-indigo-400 font-bold text-sm">-11 KG EM 35 DIAS</div>
-               </div>
+            <div className="w-full md:w-1/3 min-h-[420px] bg-slate-100 rounded-[32px] overflow-hidden relative group flex flex-col p-10 shadow-lg border-2 border-slate-50 justify-between items-start text-left bg-gradient-to-br from-indigo-950 to-slate-900 flex-shrink-0 transition-transform hover:-translate-y-2">
+              <div className="text-yellow-400 flex gap-1"><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /></div>
+              <p className="font-bold text-white/95 text-[20px] leading-relaxed flex-1 mt-6">"É tipo colocar um 'cheat mode' ativado na vida. Muito prático saber só fazer substituições quando falta frango. Emagreci."</p>
+              <div className="w-full">
+                <div className="font-black text-white text-xl">Mariana Lopes</div>
+                <div className="text-indigo-400 font-bold text-sm">-11 KG EM 35 DIAS</div>
+              </div>
             </div>
           </div>
         </div>
@@ -334,42 +386,42 @@ export default function LandingPage() {
           </div>
 
           <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="bg-white p-8 sm:p-14 rounded-[36px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] border-2 border-slate-100/80 text-center relative overflow-hidden">
-             
-             <div className="absolute top-0 left-0 w-full bg-red-600 text-white font-black text-[12px] uppercase tracking-widest py-2 animate-pulse">
-                Oferta Limitada Unificada Hoje
-             </div>
 
-             <div className="pt-8 pb-8 mb-8 border-b border-slate-100 flex flex-col items-center">
-               <p className="text-slate-400 text-lg font-medium line-through mb-1">R$ 500 (Nutricionista + App Gringo)</p>
-               <h3 className="text-[56px] font-black text-slate-900 tracking-tighter leading-none mt-2">R$ 29,90<span className="text-2xl text-slate-400 font-bold tracking-normal inline-block ml-1">/mês</span></h3>
-               <p className="text-emerald-500 font-bold uppercase text-[13px] tracking-widest mt-4 bg-emerald-50 px-4 py-1.5 rounded-full inline-block border border-emerald-100/50">MENOS DE R$ 1 POR DIA</p>
-             </div>
+            <div className="absolute top-0 left-0 w-full bg-red-600 text-white font-black text-[12px] uppercase tracking-widest py-2 animate-pulse">
+              Oferta Limitada Unificada Hoje
+            </div>
 
-             <div className="space-y-5 mb-10 text-left w-full mx-auto px-1">
-               {[
-                 'Acesso Protocolo 30 Dias (Perder 10kg)', 
-                 'Scanner Nutricional Ilimitado por IA', 
-                 'Receitas Poderosas Detox + Chás', 
-                 'Lista de Compras Atualizada na Aba', 
-                 'Acesso Pacote Único (Tudo Liberado)'
-               ].map((item, i) => (
-                 <div key={i} className="flex items-start gap-4 text-[16px] text-slate-700 font-bold leading-snug">
-                   <div className="w-6 h-6 bg-emerald-500 shadow-sm shadow-emerald-200 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                     <Check className="w-3.5 h-3.5 text-white stroke-[4]" />
-                   </div>
-                   {item}
-                 </div>
-               ))}
-             </div>
+            <div className="pt-8 pb-8 mb-8 border-b border-slate-100 flex flex-col items-center">
+              <p className="text-slate-400 text-lg font-medium line-through mb-1">R$ 500 (Nutricionista + App Gringo)</p>
+              <h3 className="text-[56px] font-black text-slate-900 tracking-tighter leading-none mt-2">R$ 29,90<span className="text-2xl text-slate-400 font-bold tracking-normal inline-block ml-1">/mês</span></h3>
+              <p className="text-emerald-500 font-bold uppercase text-[13px] tracking-widest mt-4 bg-emerald-50 px-4 py-1.5 rounded-full inline-block border border-emerald-100/50">MENOS DE R$ 1 POR DIA</p>
+            </div>
 
-             <div className="mb-6"><CountdownTimer /></div>
+            <div className="space-y-5 mb-10 text-left w-full mx-auto px-1">
+              {[
+                'Acesso Protocolo 30 Dias (Perder 10kg)',
+                'Scanner Nutricional Ilimitado por IA',
+                'Receitas Poderosas Detox + Chás',
+                'Lista de Compras Atualizada na Aba',
+                'Acesso Pacote Único (Tudo Liberado)'
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-4 text-[16px] text-slate-700 font-bold leading-snug">
+                  <div className="w-6 h-6 bg-emerald-500 shadow-sm shadow-emerald-200 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3.5 h-3.5 text-white stroke-[4]" />
+                  </div>
+                  {item}
+                </div>
+              ))}
+            </div>
 
-             <button 
-               onClick={() => router.push('/onboarding')}
-               className="w-full bg-[#21C55D] hover:bg-[#16A34A] text-white py-5 px-6 rounded-2xl font-black text-[19px] uppercase tracking-wide transition-all shadow-[0_15px_30px_-5px_rgba(34,197,94,0.4)] hover:scale-[1.03] active:scale-[0.98] border-b-4 border-[#15803d]"
-             >
-               CONCLUIR MEU ACESSO AQUI
-             </button>
+            <div className="mb-6"><CountdownTimer /></div>
+
+            <button
+              onClick={() => router.push('/onboarding')}
+              className="w-full bg-[#21C55D] hover:bg-[#16A34A] text-white py-5 px-6 rounded-2xl font-black text-[19px] uppercase tracking-wide transition-all shadow-[0_15px_30px_-5px_rgba(34,197,94,0.4)] hover:scale-[1.03] active:scale-[0.98] border-b-4 border-[#15803d]"
+            >
+              CONCLUIR MEU ACESSO AQUI
+            </button>
           </motion.div>
         </div>
       </section>
@@ -378,31 +430,31 @@ export default function LandingPage() {
       <section className="bg-[#111] py-20 px-6 overflow-hidden relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,191,36,0.1)_0,transparent_100%)]"></div>
         <div className="max-w-4xl mx-auto bg-gradient-to-r from-yellow-600 to-amber-500 rounded-[32px] p-[3px] shadow-2xl relative z-10">
-           <div className="bg-[#0A0A0A] rounded-[29px] p-8 sm:p-12 flex flex-col sm:flex-row items-center gap-10 text-center sm:text-left">
-             <div className="w-28 h-28 flex-shrink-0 from-amber-400 bg-gradient-to-tr to-yellow-600 rounded-full flex items-center justify-center shadow-xl shadow-amber-500/20">
-               <Lock className="w-12 h-12 text-black" />
-             </div>
-             <div className="space-y-4">
-               <h3 className="text-[28px] sm:text-[36px] font-black text-white tracking-tight leading-tight">Garantia de Queima Ouro — 7 Dias</h3>
-               <p className="text-slate-300 text-lg leading-relaxed font-medium">
-                 Abra sua lista de supermercado. Siga nossa biologia. Teste o scanner visual em tempo real. Se nos primeiros dias o seu corpo continuar o mesmo ou você odiar, com um botão você recebe todo o reembolso. Sem estresse. 
-               </p>
-             </div>
-           </div>
+          <div className="bg-[#0A0A0A] rounded-[29px] p-8 sm:p-12 flex flex-col sm:flex-row items-center gap-10 text-center sm:text-left">
+            <div className="w-28 h-28 flex-shrink-0 from-amber-400 bg-gradient-to-tr to-yellow-600 rounded-full flex items-center justify-center shadow-xl shadow-amber-500/20">
+              <Lock className="w-12 h-12 text-black" />
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-[28px] sm:text-[36px] font-black text-white tracking-tight leading-tight">Garantia de Queima Ouro — 7 Dias</h3>
+              <p className="text-slate-300 text-lg leading-relaxed font-medium">
+                Abra sua lista de supermercado. Siga nossa biologia. Teste o scanner visual em tempo real. Se nos primeiros dias o seu corpo continuar o mesmo ou você odiar, com um botão você recebe todo o reembolso. Sem estresse.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Footer Bonitinho */}
       <footer className="bg-[#111] py-16 px-6 border-t border-white/10 text-center flex flex-col items-center">
         <p className="font-black text-[26px] text-white tracking-tighter mb-8">SECA<span className="text-[#21C55D]">APP</span></p>
-        
+
         <div className="flex flex-wrap justify-center gap-6 text-slate-500 text-sm font-bold mb-10">
-           <a href="#" className="hover:text-slate-300 transition-colors">Termos de Uso</a>
-           <a href="#" className="hover:text-slate-300 transition-colors">Política Absoluta de Privacidade</a>
+          <a href="#" className="hover:text-slate-300 transition-colors">Termos de Uso</a>
+          <a href="#" className="hover:text-slate-300 transition-colors">Política Absoluta de Privacidade</a>
         </div>
-        
+
         <p className="text-[13px] text-slate-600 font-medium max-w-lg mx-auto leading-relaxed">
-          Este produto orienta via IA. Casos médicos isolados requerem liberação médica específica.<br/><br/>
+          Este produto orienta via IA. Casos médicos isolados requerem liberação médica específica.<br /><br />
           © 2026 SECA APP INT'L. Todos os direitos reservados.
         </p>
       </footer>
