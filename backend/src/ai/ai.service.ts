@@ -16,173 +16,262 @@ export class AiService {
     });
   }
 
-  private calculateTDEE(weight: number, height: number, age: number, sex: 'male' | 'female', activityLevel: string): number {
-    let bmr: number;
-    if (sex === 'male') {
-      bmr = 88.36 + (13.4 * weight) + (4.8 * height) - (5.7 * age);
-    } else {
-      bmr = 447.6 + (9.25 * weight) + (3.1 * height) - (4.33 * age);
-    }
-    let factor = 1.2;
-    if (activityLevel === 'light') factor = 1.375;
-    else if (activityLevel === 'moderate') factor = 1.55;
-    else if (activityLevel === 'intense') factor = 1.725;
-    
-    return Math.round(bmr * factor);
-  }
-
-  private getCaloricTarget(tdee: number, goal: string): number {
-    if (goal === 'fast') return tdee - 500;
-    if (goal === 'moderate') return tdee - 250;
-    return tdee; // maintenance
-  }
-
   async generatePlanForUser(userId: string) {
     const user = await this.userService.findById(userId);
     if (!user) throw new HttpException('Usuário não encontrado', HttpStatus.NOT_FOUND);
 
-    const { weight, height, age, sex, activityLevel, comorbidities, medications, goal, allergies, dislikedFoods, mealsPerDay } = user;
-    
-    // Fallback de proteção para caso não existam dados
+    const { weight, height, age, sex, activityLevel, comorbidities, medications, goal, allergies, dislikedFoods, targetWeight } = user;
+
     if (!weight || !height || !age || !sex) {
       throw new HttpException('Perfil incompleto. Preencha o onboarding.', HttpStatus.BAD_REQUEST);
     }
 
-    const isMock = this.configService.get('OPENAI_API_KEY') === 'your_openai_api_key_here' || !this.configService.get('OPENAI_API_KEY');
-    if (isMock) {
-      return this.getMockPlan((weight as number), (goal as string));
+    // IMC Calculation
+    const heightM = (height as number) / 100;
+    const imc = (weight as number) / (heightM * heightM);
+
+    // Safety: underweight
+    if (imc < 18.5) {
+      throw new HttpException(
+        '⚠️ Seu peso atual está abaixo do saudável. Não é seguro gerar um plano de emagrecimento para o seu perfil. Consulte um nutricionista.',
+        HttpStatus.BAD_REQUEST
+      );
     }
 
-    const tdee = this.calculateTDEE((weight as number), (height as number), (age as number), sex as 'male' | 'female', (activityLevel as string));
-    const caloricTarget = this.getCaloricTarget(tdee, (goal as string));
-    const goalLabel = goal === 'fast' ? 'emagrecimento rápido' : goal === 'moderate' ? 'perda moderada' : 'manutenção de peso';
+    const isMock = this.configService.get('OPENAI_API_KEY') === 'your_openai_api_key_here' || !this.configService.get('OPENAI_API_KEY');
+    if (isMock) return this.getMockPlan(weight as number, goal as string);
 
-    const allergiesText = allergies && allergies.trim() !== '' ? `Alergias/Intolerâncias: ${allergies}.` : 'Sem alergias.';
-    const dislikedFoodsText = dislikedFoods && dislikedFoods.trim() !== '' ? `Alimentos que ODEIA e NÃO PODE CONTER DE FORMA ALGUMA: ${dislikedFoods}.` : '';
-    const mealsFormat = mealsPerDay === '5' ? 'Café da Manhã, Lanche da Manhã, Almoço, Lanche da Tarde e Jantar (5 refeições)' : 'Café da Manhã, Almoço, Lanche da Tarde e Jantar (4 refeições)';
+    // Mifflin-St Jeor BMR
+    let bmr: number;
+    if (sex === 'male') {
+      bmr = (10 * (weight as number)) + (6.25 * (height as number)) - (5 * (age as number)) + 5;
+    } else {
+      bmr = (10 * (weight as number)) + (6.25 * (height as number)) - (5 * (age as number)) - 161;
+    }
+
+    const activityFactors: Record<string, number> = {
+      sedentary: 1.2, light: 1.375, moderate: 1.55, intense: 1.725
+    };
+    const tdee = Math.round(bmr * (activityFactors[activityLevel as string || 'sedentary'] || 1.2));
+
+    // Deficit calculation
+    let deficit = goal === 'fast' ? 750 : goal === 'moderate' ? 500 : 0;
+    const minCalories = sex === 'male' ? 1500 : 1200;
+    if (imc > 40) deficit = Math.min(deficit, 500); // IMC > 40: max 500kcal deficit
+    const caloricTarget = Math.max(tdee - deficit, minCalories);
+    const actualDeficit = tdee - caloricTarget;
+
+    // Comorbidities analysis
+    const comorbiditiesLower = ((comorbidities as string) || '').toLowerCase();
+    const hasDiabetes = ['diabetes', 'resistência à insulina', 'resistencia a insulina', 'glicemia', 'hipoglicemia'].some(k => comorbiditiesLower.includes(k));
+    const hasHipertensao = ['hipertensão', 'hipertensao', 'pressão alta', 'pressao alta'].some(k => comorbiditiesLower.includes(k));
+    const hasHipotireoidismo = ['hipotireoidismo', 'tireóide', 'tireoide'].some(k => comorbiditiesLower.includes(k));
+    const hasRenalIssue = ['renal', 'rim', 'nefro'].some(k => comorbiditiesLower.includes(k));
+    const medicationsLower = ((medications as string) || '').toLowerCase();
+    const hasGlp1 = ['ozempic', 'mounjaro', 'wegovy', 'saxenda', 'metformina', 'rybelsus', 'victoza'].some(m => medicationsLower.includes(m));
+
+    // Auto meal frequency — never asked from user
+    let mealsCount: 3 | 5 = 3;
+    let mealsReason = '';
+    if (hasDiabetes) {
+      mealsCount = 5;
+      mealsReason = 'Diabetes/hipoglicemia requer refeições fracionadas para controle glicêmico.';
+    } else if (goal === 'fast' && (activityLevel === 'sedentary' || activityLevel === 'light')) {
+      mealsCount = 3;
+      mealsReason = 'Emagrecimento rápido com atividade baixa: 3 refeições maiores otimizam o déficit calórico.';
+    } else if (goal === 'fast' && (activityLevel === 'moderate' || activityLevel === 'intense')) {
+      mealsCount = 5;
+      mealsReason = 'Emagrecimento rápido com atividade alta: 5 refeições preservam massa muscular.';
+    } else if (goal === 'moderate' && activityLevel === 'sedentary') {
+      mealsCount = 3;
+      mealsReason = 'Perda moderada com sedentarismo: 3 refeições equilibradas são suficientes.';
+    } else if (goal === 'moderate') {
+      mealsCount = 5;
+      mealsReason = 'Perda moderada com atividade: 5 refeições otimizam o metabolismo.';
+    } else {
+      mealsCount = 3;
+      mealsReason = '3 refeições equilibradas para manutenção de peso.';
+    }
+
+    const mealsFormat = mealsCount === 5
+      ? 'Café da Manhã (08:00), Lanche da Manhã (10:30), Almoço (12:30), Lanche da Tarde (16:00), Jantar (19:30)'
+      : 'Café da Manhã (08:00), Almoço (12:30), Jantar (19:30)';
+
+    // Macro calculation
+    const proteinG = Math.round((weight as number) * 2);
+    const fatCalories = Math.round(caloricTarget * 0.25);
+    const fatG = Math.round(fatCalories / 9);
+    const proteinCalories = proteinG * 4;
+    const carbCalories = caloricTarget - proteinCalories - fatCalories;
+    const carbG = Math.max(0, Math.round(carbCalories / 4));
+
+    // Build warnings
+    const warnings: string[] = [];
+    if (imc > 40) warnings.push('⚠️ Seu IMC indica obesidade grave. Este plano é um suporte alimentar inicial. É fundamental que você busque acompanhamento médico e nutricional presencial antes de iniciar qualquer dieta.');
+    if ((comorbidities && (comorbidities as string).trim() !== '') || (medications && (medications as string).trim() !== '')) {
+      warnings.push('⚠️ Você informou condições médicas ou uso de medicamentos. Este plano é um guia alimentar geral e não substitui orientação profissional. Consulte seu médico ou nutricionista antes de iniciar.');
+    }
+
+    // Clinical restriction rules
+    const restrictionRules: string[] = [];
+    if (hasDiabetes) restrictionRules.push('DIABÉTICO/RESISTÊNCIA INSULÍNICA: Elimine açúcares simples, farinhas brancas, arroz branco, sucos de fruta e ultraprocessados. Use apenas carboidratos de baixo índice glicêmico (aveia, batata doce, arroz integral, leguminosas).');
+    if (hasHipertensao) restrictionRules.push('HIPERTENSO: Zero embutidos, enlatados, temperos industrializados. Cozinhe sem sal extra, use ervas naturais. Evite alimentos com sódio acima de 600mg por porção.');
+    if (hasHipotireoidismo) restrictionRules.push('HIPOTIREOIDISMO: Evite soja em excesso e vegetais crucíferos crus em grandes quantidades (brócolis, couve-flor, repolho). Prefira vegetais cozidos.');
+    if (hasRenalIssue) restrictionRules.push('DOENÇA RENAL: Reduza proteína animal total do plano em 30%, elimine suplementos proteicos, evite alimentos ricos em potássio (banana, laranja, tomate) e fósforo (laticínios, feijão).');
+    if (hasGlp1) restrictionRules.push('MEDICAÇÃO GLP-1/METFORMINA: Plano ajustado para complementar o efeito do medicamento com refeições menores e mais frequentes. Reforce consulta médica periodicamente.');
+    if (medicationsLower.trim() !== '' && !hasGlp1) restrictionRules.push('MEDICAMENTO NÃO IDENTIFICADO: Aviso importante — consulte seu médico para verificar interações alimentares com o medicamento em uso.');
+
+    // Allergies & dislikes
+    const allergiesText = allergies && (allergies as string).trim() !== ''
+      ? `ALERGIAS — RESTRIÇÃO ABSOLUTA (NUNCA INCLUA EM NENHUMA REFEIÇÃO DE NENHUM DIA): ${allergies}`
+      : 'Sem alergias reportadas.';
+    const dislikedText = dislikedFoods && (dislikedFoods as string).trim() !== ''
+      ? `ALIMENTOS ODIADOS — RESTRIÇÃO FORTE (NUNCA INCLUA EM NENHUM DIA): ${dislikedFoods}`
+      : 'Sem restrições de preferência.';
+
+    // Weight loss estimates
+    const weeklyLossKg = actualDeficit > 0 ? parseFloat(((actualDeficit * 7) / 7700).toFixed(2)) : 0;
+    const monthlyLossKg = parseFloat((weeklyLossKg * 4.3).toFixed(2));
+    const weightDiff = Math.max(0, (weight as number) - ((targetWeight as number) || (weight as number)));
+    const weeksToGoal = weeklyLossKg > 0 && weightDiff > 0 ? Math.ceil(weightDiff / weeklyLossKg) : 0;
+
+    // Target weight IMC safety
+    let adjustedTargetWeight = (targetWeight as number) || null;
+    if (adjustedTargetWeight) {
+      const targetImc = adjustedTargetWeight / (heightM * heightM);
+      if (targetImc < 18.5) {
+        adjustedTargetWeight = Math.ceil(18.5 * heightM * heightM);
+      }
+    }
 
     try {
-      const prompt = `Você é uma Nutricionista Funcional, Esportiva e Clínica de Elite, renomada por criar dietas altamente eficientes, saborosas e seguras para resultados expressivos.
+      const prompt = `Você é um nutricionista virtual especializado em emagrecimento saudável. Nunca dê diagnósticos médicos. Nunca prescreva medicamentos. Nunca substitua acompanhamento profissional. Em caso de dúvida clínica, oriente sempre consulta a profissional de saúde.
 
-## DADOS DO PACIENTE OBRIGATÓRIOS
-- Biometria: ${weight}kg, ${height}cm, ${age} anos, Sexo ${sex === 'male' ? 'Masculino' : 'Feminino'}.
-- Nível de Atividade: ${activityLevel}.
-- Objetivo: **${goalLabel.toUpperCase()}**. Meta calórica fixada em: **${caloricTarget} kcal diárias**.
-- Histórico Clínico: ${comorbidities || 'Nenhum'}.
-- Uso de Medicação: ${medications || 'Nenhum'}.
-- **${allergiesText}** (RESTRIÇÃO ABSOLUTA, AJA COM RESPONSABILIDADE MÉDICA).
-- **${dislikedFoodsText}**
+## DADOS DO PACIENTE
+- Biometria: ${weight}kg | ${height}cm | ${age} anos | Sexo: ${sex === 'male' ? 'Masculino' : 'Feminino'}
+- IMC: ${imc.toFixed(1)}${imc > 40 ? ' ⚠️ OBESIDADE GRAVE — déficit limitado a 500kcal' : ''}
+- Nível de atividade: ${activityLevel}
+- TDEE (Mifflin-St Jeor): ${tdee} kcal/dia
+- META CALÓRICA DIÁRIA: ${caloricTarget} kcal (déficit aplicado: ${actualDeficit} kcal)
+- METAS DE MACROS DIÁRIAS: Proteína ${proteinG}g | Carboidrato ${carbG}g | Gordura ${fatG}g
+- Número de refeições: ${mealsCount} refeições por dia
+- Motivo: ${mealsReason}
+- Formato obrigatório: ${mealsFormat}
+- Objetivo: ${goal === 'fast' ? 'Emagrecimento rápido' : goal === 'moderate' ? 'Perda moderada' : 'Manutenção'}
+- Peso atual: ${weight}kg | Peso desejado: ${adjustedTargetWeight ? adjustedTargetWeight + 'kg' : 'não informado'}
+- Histórico clínico: ${comorbidities || 'Nenhum'}
+- Medicamentos em uso: ${medications || 'Nenhum'}
+- ${allergiesText}
+- ${dislikedText}
 
-## SUA TAREFA
-Elabore 3 PLANOS NUTRICIONAIS BASE (Plano A, Plano B, Plano C) com EXATAMENTE ${caloricTarget} kcal cada. Esses planos serão rotacionados automaticamente durante a semana no seu App para o paciente.
-Formato de refeições obrigatório: **${mealsFormat}**.
+## RESTRIÇÕES CLÍNICAS OBRIGATÓRIAS
+${restrictionRules.length > 0 ? restrictionRules.map(r => `- ${r}`).join('\n') : '- Nenhuma restrição clínica específica além das alergias.'}
 
-## REGRAS DE OURO DA DIETA (CRÍTICO)
-1. **Acessibilidade Absoluta**: O paciente mora no Brasil. NÃO crie receitas gourmet com ingredientes caros ou difíceis de encontrar ("salmão do alasca", "mirtilos", "leite de amêndoas puro", etc). Use ovos, frango, carne moída, arroz, feijão, aveia, frutas comuns, pão integral.
-2. **Qualidade Premium**: O prato deve parecer gostoso na descrição. Exemplo: Em vez de "Frango cozido", use "Filé de frango temperado na chapa com crosta leve e legumes assados".
-3. NÃO adicione sucos detox ou chás termogênicos de manhã/almoço, o Sistema fará isso depois automaticamente!
-4. Respeite IMPRESCINDIVELMENTE as alergias e alimentos odiados.
+## CÁLCULO DE MACROS (EXIBA NO INÍCIO DO PLANO)
+Sua meta diária: ${caloricTarget} kcal | Proteína: ${proteinG}g | Carboidrato: ${carbG}g | Gordura: ${fatG}g
 
-Retorne no formato ESTRITO JSON:
+## FREQUÊNCIA DE REFEIÇÕES
+Foram definidas ${mealsCount} refeições por dia com base no seu perfil (${mealsReason}).
+
+## CALENDÁRIO SEMANAL FIXO — SIGO EXATAMENTE ESTE PADRÃO
+- Segunda-feira (dayOfWeek=1): Incluir SUCO DETOX + CHÁ SECA BARRIGA
+- Terça-feira (dayOfWeek=2): Incluir apenas CHÁ SECA BARRIGA
+- Quarta-feira (dayOfWeek=3): Incluir SUCO DETOX + CHÁ SECA BARRIGA
+- Quinta-feira (dayOfWeek=4): Incluir apenas CHÁ SECA BARRIGA
+- Sexta-feira (dayOfWeek=5): Incluir apenas SUCO DETOX
+- Sábado (dayOfWeek=6): Nenhum dos dois
+- Domingo (dayOfWeek=0): Nenhum dos dois
+
+SUCO DETOX (quando aplicável): insira como PRIMEIRA refeição com time="06:30", title="Suco Detox", description="🥬 Tome em jejum assim que acordar. Receita: 1 folha de couve + ½ maçã + suco de 1 limão + 200ml de água. Bater e tomar imediatamente. Aguarde 20 minutos antes do café da manhã."
+
+CHÁ SECA BARRIGA (quando aplicável): insira imediatamente ANTES do almoço com time="12:00", title="Chá Seca Barriga", description="🍵 Tome 1 xícara 30 minutos antes do almoço: chá verde, hibisco ou cavalinha. Sem açúcar."
+
+## REGRAS DE QUALIDADE DO CARDÁPIO
+1. Use APENAS alimentos simples, baratos e acessíveis no Brasil: frango, peixe, ovos, carne moída magra, arroz integral, aveia, batata doce, feijão, lentilha, frutas comuns, verduras de mercado.
+2. NUNCA repita o mesmo prato principal em dias consecutivos.
+3. Varie as fontes de proteína ao longo da semana: frango, ovo, peixe, carne vermelha magra, leguminosas.
+4. Varie os carboidratos: batata doce, arroz integral, mandioca, aveia, inhame.
+5. Para cada refeição principal (café, almoço, jantar) inclua: alimentos + quantidades em gramas + calorias estimadas + dica de preparo "💡 [dica]".
+6. A soma calórica de cada dia deve ser PRÓXIMA de ${caloricTarget} kcal.
+7. Os lanches podem se repetir mas não em dias consecutivos.
+
+## ESTRUTURA ESPERADA DO JSON (siga exatamente)
 {
   "waterTarget": ${(weight as number) * 35},
-  "basePlans": [
+  "warnings": ${JSON.stringify(warnings)},
+  "dailyMacros": { "calories": ${caloricTarget}, "protein": ${proteinG}, "carbs": ${carbG}, "fat": ${fatG} },
+  "weeklyPlan": [
     {
-      "meals": [ { "time": "08:00", "title": "Café da manhã", "description": "...", "completed": false } ]
+      "dayOfWeek": 0,
+      "meals": [
+        { "time": "HH:MM", "title": "Nome da Refeição", "description": "Descrição detalhada com quantidades, calorias e dica", "completed": false }
+      ]
     },
-    { "meals": [ ... ] },
-    { "meals": [ ... ] }
-  ]
-}`;
+    ... (repita para dayOfWeek 1 até 6)
+  ],
+  "shoppingList": {
+    "proteinas": ["Frango filé (700g)", "Ovos (1 dúzia)", ...],
+    "carboidratos": ["Aveia (500g)", "Batata doce (1kg)", ...],
+    "vegetaisEFolhas": ["Couve (1 maço)", ...],
+    "frutas": ["Banana (1kg)", ...],
+    "gordurasEOleaginosas": ["Azeite de oliva (250ml)", ...],
+    "temperosECondimentos": ["Alho", "Limão", ...],
+    "outros": [...]
+  },
+  "summary": {
+    "dailyCalories": ${caloricTarget},
+    "deficit": ${actualDeficit},
+    "weeklyLossKg": ${weeklyLossKg},
+    "monthlyLossKg": ${monthlyLossKg},
+    "weeksToGoal": ${weeksToGoal}
+  }
+}
+
+GERE OS 7 DIAS COMPLETOS (dayOfWeek 0=Dom, 1=Seg, 2=Ter, 3=Qua, 4=Qui, 5=Sex, 6=Sáb). Aplique o calendário de Suco Detox e Chá RIGOROSAMENTE. Retorne APENAS o JSON, sem texto antes ou depois.`;
 
       const response = await this.openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [{ role: 'system', content: prompt }],
-        response_format: { type: "json_object" }
+        response_format: { type: 'json_object' },
+        max_tokens: 6000,
       });
 
       const responseText = response.choices[0].message.content || '{}';
       const parsedData = JSON.parse(responseText);
 
-      // Mapear os 3 planos base para os 7 dias da semana
-      const weeklyPlan = [];
-      const basePlans = parsedData.basePlans || [];
-      if (basePlans.length === 0) throw new Error('Falha ao gerar base plans');
-
-      for (let i = 0; i < 7; i++) {
-        const baseIndex = i % basePlans.length;
-        const clonedMeals = JSON.parse(JSON.stringify(basePlans[baseIndex].meals));
-        
-        // Regra Dinâmica do Suco Detox: Segunda(1), Quarta(3) e Sexta(5) em jejum pela manhã
-        if ([1, 3, 5].includes(i)) {
-          clonedMeals.unshift({
-            type: "Desjejum",
-            time: "06:30",
-            name: "Suco Detox Seca Barriga",
-            description: "1 folha de couve, 1/2 maçã, 1 limão espremido e 200ml de água (Bater e beber em jejum)",
-            calories: 60,
-            protein: 2,
-            carbs: 14,
-            fat: 0,
-            completed: false
-          });
-        }
-        
-        // Regra Dinâmica do Chá: Segunda(1) a Quinta(4) antes do almoço (ou jantar)
-        if ([1, 2, 3, 4].includes(i)) {
-          const almoçoIndex = clonedMeals.findIndex((m: any) => m.title?.toLowerCase().includes('almoço') || m.type?.toLowerCase().includes('almoço')) || 1;
-          const finalInsertIndex = almoçoIndex > -1 ? almoçoIndex : 1; 
-
-          clonedMeals.splice(finalInsertIndex, 0, {
-            type: "Lanche",
-            time: "11:30",
-            name: "Chá Termogênico Padrão",
-            description: "1 xícara de Chá Verde, Hibisco ou Cavalinha sem açúcar (Para acelerar o metabolismo)",
-            calories: 5,
-            protein: 0,
-            carbs: 1,
-            fat: 0,
-            completed: false
-          });
-        }
-
-        weeklyPlan.push({
-          dayOfWeek: i,
-          meals: clonedMeals
-        });
-      }
+      // Ensure completed: false on all meals and sort by dayOfWeek
+      const weeklyPlan = (parsedData.weeklyPlan || [])
+        .map((day: any) => ({
+          ...day,
+          meals: (day.meals || []).map((m: any) => ({ ...m, completed: false }))
+        }))
+        .sort((a: any, b: any) => a.dayOfWeek - b.dayOfWeek);
 
       const finalPlan = {
         waterTarget: parsedData.waterTarget || (weight as number) * 35,
-        weeklyPlan
+        warnings: parsedData.warnings || warnings,
+        dailyMacros: parsedData.dailyMacros || { calories: caloricTarget, protein: proteinG, carbs: carbG, fat: fatG },
+        weeklyPlan,
+        shoppingList: parsedData.shoppingList || {},
+        summary: parsedData.summary || { dailyCalories: caloricTarget, deficit: actualDeficit, weeklyLossKg, monthlyLossKg, weeksToGoal }
       };
 
-      // Salva no banco de dados para evitar re-gerações pendentes
       await this.userService.updateProfile(user.id, { plan: finalPlan });
-
       return finalPlan;
+
     } catch (error) {
       console.error(error);
       throw new HttpException('Failed to generate plan', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-
   async analyzeMeal(imageBase64: string) {
     const isMock = this.configService.get('OPENAI_API_KEY') === 'your_openai_api_key_here' || !this.configService.get('OPENAI_API_KEY');
     if (isMock) {
-      return {
-        name: "Prato Saudável Simulado",
-        calories: 350,
-        protein: 30,
-        carbs: 40,
-        fats: 10,
-        ingredients: []
-      };
+      return { name: "Prato Saudável Simulado", calories: 350, protein: 30, carbs: 40, fats: 10, ingredients: [] };
     }
 
     try {
-      // STEP 1: GPT Vision identifies ingredients + estimates portions
       const visionResponse = await this.openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
@@ -194,19 +283,18 @@ Retorne no formato ESTRITO JSON:
                 text: `Analise esta imagem de uma refeição brasileira. Identifique CADA ingrediente separado e estime o peso em gramas de cada um.
 Para maior precisão na busca de banco de dados, você DEVE fornecer também um termo de busca em INGLÊS chamado 'usdaSearchTerm'.
 REGRA DE OURO PARA O TERMO EM INGLÊS:
-- Para frutas, verduras e legumes frescos, você DEVE INCLUIR a palavra "raw" antes do nome (Ex: "raw banana", "raw apple", "raw onion"). Se você esquecer o "raw", o sistema buscará a versão desidratada que tem 10x mais calorias!
+- Para frutas, verduras e legumes frescos, inclua a palavra "raw" antes do nome (Ex: "raw banana", "raw apple"). Se esquecer o "raw", o sistema buscará a versão desidratada que tem 10x mais calorias!
 - Para carnes, especifique o preparo (Ex: "grilled chicken breast", "roasted beef").
 
 Retorne um JSON neste EXATO formato:
 {
   "mealName": "Nome do Prato",
   "ingredients": [
-    { "name": "4 bananas", "usdaSearchTerm": "raw banana", "grams": 400 },
     { "name": "arroz branco cozido", "usdaSearchTerm": "cooked white rice", "grams": 120 },
     { "name": "frango grelhado", "usdaSearchTerm": "grilled chicken breast", "grams": 150 }
   ]
 }
-Seja realista nas quantidades de gramas (Lembre-se: 1 banana média = 100g, 4 bananas = 400g). Retorne SOMENTE o JSON.`
+Seja realista nas quantidades. Retorne SOMENTE o JSON.`
               },
               { type: 'image_url', image_url: { url: imageBase64 } }
             ]
@@ -219,24 +307,13 @@ Seja realista nas quantidades de gramas (Lembre-se: 1 banana média = 100g, 4 ba
       const visionData = JSON.parse(visionResponse.choices[0].message.content || '{}');
       const ingredients: Array<{name: string; usdaSearchTerm: string; grams: number}> = visionData.ingredients || [];
 
-      if (!ingredients.length) {
-        throw new Error('No ingredients identified');
-      }
+      if (!ingredients.length) throw new Error('No ingredients identified');
 
-      // STEP 2: For each ingredient, query USDA FoodData Central for accurate nutrition
       const usdaApiKey = this.configService.get('USDA_API_KEY');
-      const nutritionResults: Array<{
-        name: string;
-        grams: number;
-        calories: number;
-        protein: number;
-        carbs: number;
-        fats: number;
-      }> = [];
+      const nutritionResults: Array<{name: string; grams: number; calories: number; protein: number; carbs: number; fats: number}> = [];
 
       for (const ingredient of ingredients) {
         try {
-          // Search for the food in USDA database using the specific English term
           const searchTerm = ingredient.usdaSearchTerm || ingredient.name;
           const searchRes = await fetch(
             `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(searchTerm)}&api_key=${usdaApiKey}&pageSize=1&dataType=SR%20Legacy,Foundation`
@@ -245,94 +322,85 @@ Seja realista nas quantidades de gramas (Lembre-se: 1 banana média = 100g, 4 ba
           const food = searchData.foods?.[0];
 
           if (food) {
-            // Get macros per 100g from USDA, then scale to the estimated grams
             const getNutrient = (id: number): number => {
               const n = food.foodNutrients?.find((fn: any) => fn.nutrientId === id);
               return n?.value || 0;
             };
-
             const per100g = {
-              calories: getNutrient(1008), // Energy (kcal)
-              protein:  getNutrient(1003), // Protein
-              carbs:    getNutrient(1005), // Carbohydrate, by difference
-              fats:     getNutrient(1004), // Total lipid (fat)
+              calories: getNutrient(1008),
+              protein: getNutrient(1003),
+              carbs: getNutrient(1005),
+              fats: getNutrient(1004),
             };
-
             const factor = ingredient.grams / 100;
             nutritionResults.push({
               name: ingredient.name,
               grams: ingredient.grams,
               calories: Math.round(per100g.calories * factor),
-              protein:  Math.round(per100g.protein  * factor * 10) / 10,
-              carbs:    Math.round(per100g.carbs    * factor * 10) / 10,
-              fats:     Math.round(per100g.fats     * factor * 10) / 10,
+              protein: Math.round(per100g.protein * factor * 10) / 10,
+              carbs: Math.round(per100g.carbs * factor * 10) / 10,
+              fats: Math.round(per100g.fats * factor * 10) / 10,
             });
           } else {
-            // USDA didn't find it - ask GPT to estimate this specific item
             nutritionResults.push({
               name: ingredient.name,
               grams: ingredient.grams,
-              calories: Math.round((ingredient.grams / 100) * 150), // generic fallback
+              calories: Math.round((ingredient.grams / 100) * 150),
               protein: Math.round((ingredient.grams / 100) * 15),
-              carbs:   Math.round((ingredient.grams / 100) * 15),
-              fats:    Math.round((ingredient.grams / 100) * 5),
+              carbs: Math.round((ingredient.grams / 100) * 15),
+              fats: Math.round((ingredient.grams / 100) * 5),
             });
           }
-        } catch {
-          // Skip failed lookup
-        }
+        } catch { /* Skip failed lookup */ }
       }
 
-      // STEP 3: Sum all ingredients
       const totals = nutritionResults.reduce((acc, item) => ({
         calories: acc.calories + item.calories,
-        protein:  acc.protein  + item.protein,
-        carbs:    acc.carbs    + item.carbs,
-        fats:     acc.fats     + item.fats,
+        protein: acc.protein + item.protein,
+        carbs: acc.carbs + item.carbs,
+        fats: acc.fats + item.fats,
       }), { calories: 0, protein: 0, carbs: 0, fats: 0 });
 
       return {
         name: visionData.mealName || 'Refeição Analisada',
         calories: totals.calories,
-        protein:  Math.round(totals.protein  * 10) / 10,
-        carbs:    Math.round(totals.carbs    * 10) / 10,
-        fats:     Math.round(totals.fats     * 10) / 10,
+        protein: Math.round(totals.protein * 10) / 10,
+        carbs: Math.round(totals.carbs * 10) / 10,
+        fats: Math.round(totals.fats * 10) / 10,
         ingredients: nutritionResults,
       };
 
     } catch (error) {
-       console.error(error);
-       throw new HttpException('Failed to analyze meal', HttpStatus.INTERNAL_SERVER_ERROR);
+      console.error(error);
+      throw new HttpException('Failed to analyze meal', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   private getMockPlan(weight: number, goal: string) {
     const baseDay = [
-      { time: "07:00", title: "Suco Detox Verde", description: "Couve, limão, maçã e gengibre", completed: false },
-      { time: "09:00", title: "Café da manhã", description: "2 ovos mexidos com café sem açúcar", completed: false },
-      { time: "12:30", title: "Almoço", description: "Frango grelhado (120g) com salada à vontade e 2 colheres de arroz", completed: false },
-      { time: "16:00", title: "Lanche", description: "Iogurte natural com um fio de mel e chia", completed: false },
-      { time: "19:00", title: "Chá Seca Barriga", description: "Chá de hibisco com canela (antes do jantar)", completed: false },
-      { time: "19:30", title: "Jantar", description: "Sopa de legumes leve ou omelete simples", completed: false }
-    ];
-
-    const weekendDay = [
-      { time: "09:00", title: "Café da manhã Reforçado", description: "Pão de queijo com café e ovos", completed: false },
-      { time: "13:30", title: "Almoço Livre Controlado", description: "Macarrão ao molho vermelho com carne moída", completed: false },
-      { time: "19:00", title: "Jantar Leve", description: "Misto quente integral", completed: false }
+      { time: "06:30", title: "Suco Detox", description: "🥬 Tome em jejum: 1 folha de couve + ½ maçã + suco de 1 limão + 200ml de água. Aguarde 20min.", completed: false },
+      { time: "08:00", title: "Café da manhã", description: "2 ovos mexidos (140kcal) + café sem açúcar. 💡 Mexa os ovos em frigideira antiaderente sem óleo.", completed: false },
+      { time: "12:00", title: "Chá Seca Barriga", description: "🍵 1 xícara de chá verde ou hibisco sem açúcar, 30min antes do almoço.", completed: false },
+      { time: "12:30", title: "Almoço", description: "Frango grelhado (120g, 200kcal) + salada à vontade + arroz integral (3 col). 💡 Tempere o frango com limão e alho.", completed: false },
+      { time: "16:00", title: "Lanche da Tarde", description: "Iogurte natural (150g, 90kcal) + 1 fruta. 💡 Prefira frutas com baixo índice glicêmico.", completed: false },
+      { time: "19:30", title: "Jantar", description: "Omelete simples (2 ovos, 140kcal) + legumes cozidos. 💡 Adicione cúrcuma aos ovos para potencial anti-inflamatório.", completed: false }
     ];
 
     return {
       waterTarget: weight * 35,
+      warnings: [],
+      dailyMacros: { calories: weight * 20, protein: weight * 2, carbs: 150, fat: 50 },
       weeklyPlan: [
-        { dayOfWeek: 0, dayName: "Domingo", meals: weekendDay },
-        { dayOfWeek: 1, dayName: "Segunda-feira", meals: baseDay },
-        { dayOfWeek: 2, dayName: "Terça-feira", meals: baseDay },
-        { dayOfWeek: 3, dayName: "Quarta-feira", meals: baseDay },
-        { dayOfWeek: 4, dayName: "Quinta-feira", meals: baseDay },
-        { dayOfWeek: 5, dayName: "Sexta-feira", meals: baseDay },
-        { dayOfWeek: 6, dayName: "Sábado", meals: weekendDay }
-      ]
+        { dayOfWeek: 0, meals: baseDay.filter(m => !m.title.includes('Suco') && !m.title.includes('Chá')) },
+        { dayOfWeek: 1, meals: baseDay },
+        { dayOfWeek: 2, meals: baseDay.filter(m => !m.title.includes('Suco')) },
+        { dayOfWeek: 3, meals: baseDay },
+        { dayOfWeek: 4, meals: baseDay.filter(m => !m.title.includes('Suco')) },
+        { dayOfWeek: 5, meals: baseDay.filter(m => !m.title.includes('Chá Seca')) },
+        { dayOfWeek: 6, meals: baseDay.filter(m => !m.title.includes('Suco') && !m.title.includes('Chá')) },
+      ],
+      shoppingList: {},
+      summary: { dailyCalories: weight * 20, deficit: 500, weeklyLossKg: 0.45, monthlyLossKg: 1.9, weeksToGoal: 0 }
     };
   }
 }

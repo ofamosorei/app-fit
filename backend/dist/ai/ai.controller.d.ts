@@ -4,10 +4,11 @@ export declare class AiController {
     constructor(aiService: AiService);
     generatePlan(req: any): Promise<{
         waterTarget: any;
-        weeklyPlan: {
-            dayOfWeek: number;
-            meals: any;
-        }[];
+        warnings: any;
+        dailyMacros: any;
+        weeklyPlan: any;
+        shoppingList: any;
+        summary: any;
     }>;
     analyzeMeal(imageBase64: string): Promise<{
         name: any;

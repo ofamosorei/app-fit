@@ -27,9 +27,8 @@ export default function Onboarding() {
   // Novos campos premium
   const [localAllergies, setLocalAllergies] = useState('');
   const [localDislikedFoods, setLocalDislikedFoods] = useState('');
-  const [localMealsPerDay, setLocalMealsPerDay] = useState<'3'|'5'>('5');
 
-  const TOTAL_STEPS = 12;
+  const TOTAL_STEPS = 11;
 
   const nextStep = async () => {
     if (step < TOTAL_STEPS) {
@@ -56,7 +55,7 @@ export default function Onboarding() {
               weight: localWeight, height: localHeight, age: localAge, sex: localSex,
               activityLevel: localActivity, comorbidities: localComorbidities,
               medications: localMedications, goal: localGoal, targetWeight: localTarget,
-              allergies: localAllergies, dislikedFoods: localDislikedFoods, mealsPerDay: localMealsPerDay
+              allergies: localAllergies, dislikedFoods: localDislikedFoods
             })
           });
           
@@ -324,31 +323,6 @@ export default function Onboarding() {
                   placeholder="Se sim, digite os nomes. Caso contrário, deixe em branco."
                   className="w-full flex-1 min-h-[150px] max-h-[250px] resize-none bg-white border border-slate-200 rounded-[2rem] p-6 text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-lg shadow-inner placeholder:text-slate-300"
                 />
-              </div>
-            </motion.div>
-          )}
-
-          {/* Step 12 – Número de Refeições */}
-          {step === 12 && (
-            <motion.div key="12" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex-1 flex flex-col justify-center gap-6 absolute inset-0">
-              <div className="space-y-2 text-center mt-2 mb-4">
-                <h2 className="text-[32px] font-black text-slate-900 tracking-tight leading-tight">Organização do Dia</h2>
-                <p className="text-slate-500 font-medium">Quantas refeições prefere fazer?</p>
-              </div>
-              <div className="flex flex-col gap-4">
-                {[
-                  { id: '3', label: 'Apenas 3 Maiores', desc: 'Café da manhã, Almoço e Jantar.' },
-                  { id: '5', label: '5 Fracionadas', desc: 'Café, Lanche, Almoço, Lanche da Tarde e Jantar.' }
-                ].map(opt => (
-                  <button
-                    key={opt.id}
-                    onClick={() => setLocalMealsPerDay(opt.id as '3' | '5')}
-                    className={`p-6 rounded-[2rem] border-2 text-left transition-all shadow-[0_4px_20px_rgb(0,0,0,0.02)] active:scale-[0.98] ${localMealsPerDay === opt.id ? 'bg-emerald-50 border-emerald-500 ring-4 ring-emerald-500/10' : 'bg-white border-slate-100 hover:border-emerald-200'}`}
-                  >
-                    <h3 className={`font-black text-[17px] tracking-tight ${localMealsPerDay === opt.id ? 'text-emerald-600' : 'text-slate-800'}`}>{opt.label}</h3>
-                    <p className={`text-[13px] mt-1.5 font-medium leading-relaxed ${localMealsPerDay === opt.id ? 'text-emerald-600/70' : 'text-slate-500'}`}>{opt.desc}</p>
-                  </button>
-                ))}
               </div>
             </motion.div>
           )}

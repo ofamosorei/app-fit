@@ -5,14 +5,13 @@ export declare class AiService {
     private userService;
     private openai;
     constructor(configService: ConfigService, userService: UserService);
-    private calculateTDEE;
-    private getCaloricTarget;
     generatePlanForUser(userId: string): Promise<{
         waterTarget: any;
-        weeklyPlan: {
-            dayOfWeek: number;
-            meals: any;
-        }[];
+        warnings: any;
+        dailyMacros: any;
+        weeklyPlan: any;
+        shoppingList: any;
+        summary: any;
     }>;
     analyzeMeal(imageBase64: string): Promise<{
         name: any;
