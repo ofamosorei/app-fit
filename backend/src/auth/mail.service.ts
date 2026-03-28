@@ -20,7 +20,7 @@ export class MailService {
     const payload = {
       sender: {
         name: 'SECA APP',
-        email: 'ewertonlucascn@gmail.com', // E-mail que você cadastrou no Brevo
+        email: 'suporte@secaapp.com', // E-mail profissional configurado na Brevo
       },
       to: [
         { email: email },
