@@ -99,7 +99,7 @@ export default function LandingPage() {
             <Lock className="w-3.5 h-3.5" /> está pronta para transformar seu corpo e sua saúde?
           </div>
           <h1 className="text-[34px] sm:text-[58px] font-black leading-[1.1] tracking-tight text-slate-900 drop-shadow-sm">
-            Acesso a um protocolo completo para desinchar e <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">perder até 10 kg em 30 dias</span> com alimentação estratégica e receitas detox
+            Um aplicativo que cuida da sua alimentação e te ajuda a desinchar com <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">apoio de nutricionista</span>
           </h1>
           <p className="text-lg sm:text-[22px] text-slate-500 font-medium max-w-3xl mx-auto leading-snug">
             O <strong className="text-slate-900">SECA APP</strong> assume o "trabalho sujo" de analisar sua comida por foto e calcular tudo no piloto automático para você voltar a ter resultados rápidos e práticos em sua vida.
