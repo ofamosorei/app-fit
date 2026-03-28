@@ -1,5 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import * as dns from 'dns';
+
+// Fix para DigitalOcean tentar IPv6 pro Gmail e falhar com ENETUNREACH
+dns.setDefaultResultOrder('ipv4first');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

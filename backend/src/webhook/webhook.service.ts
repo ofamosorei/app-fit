@@ -23,18 +23,24 @@ export class WebhookService {
     private readonly authService: AuthService,
   ) {}
 
-  async handleKiwify(payload: KiwifyPayload): Promise<{ received: boolean }> {
-    const event = payload?.event;
+  async handleKiwify(payload: any): Promise<{ received: boolean }> {
+    // Log completo para debug em produção
+    this.logger.log(`[Kiwify] Payload recebido: ${JSON.stringify(payload)}`);
 
-    // 1. Ignorar eventos que não sejam order_approved
-    if (event !== 'order_approved') {
-      this.logger.log(`[Kiwify] Evento ignorado: ${event}`);
+    // A Kiwify envia o status no campo 'order_status' e o evento às vezes não existe
+    const status = payload?.order_status || payload?.status || payload?.event;
+    
+    // 1. Ignorar se não for aprovado
+    if (status !== 'approved' && status !== 'order_approved' && status !== 'paid') {
+      this.logger.log(`[Kiwify] Status ignorado: ${status}`);
       return { received: true };
     }
 
-    const orderId = payload?.data?.id || payload?.data?.order_id;
-    const email = payload?.data?.customer?.email?.toLowerCase().trim();
-    const name = payload?.data?.customer?.name || '';
+    // A Kiwify envia Customer com C maiúsculo ou minúsculo
+    const customer = payload?.Customer || payload?.customer || payload?.data?.customer || {};
+    const orderId = payload?.order_id || payload?.id || payload?.data?.id;
+    const email = customer?.email?.toLowerCase().trim();
+    const name = customer?.full_name || customer?.name || '';
 
     // 2. Validar campos obrigatórios
     if (!orderId || !email) {

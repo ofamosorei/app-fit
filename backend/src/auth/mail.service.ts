@@ -15,7 +15,10 @@ export class MailService {
         user: this.config.get<string>('SMTP_USER'),
         pass: this.config.get<string>('SMTP_PASS'),
       },
-    });
+      tls: {
+        rejectUnauthorized: false
+      }
+    } as any);
   }
 
   async sendMagicLink(email: string, token: string): Promise<void> {
