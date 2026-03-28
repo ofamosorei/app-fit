@@ -36,7 +36,7 @@ export default function LoginPage() {
       }
 
       const data = await res.json();
-      localStorage.setItem('seca_token', data.accessToken);
+      localStorage.setItem('@appfit:token', data.accessToken);
       
       // FORÇAR REDIRECIONAMENTO IMEDIATO
       window.location.href = '/dashboard';
