@@ -50,11 +50,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Update user state globally after an onboarding
   useEffect(() => {
-    // Escuta evento customizado de atualização de perfil para não precisar recarregar a página
-    const handleProfileUpdate = () => validateToken();
-    window.addEventListener('appfit:profile-updated', handleProfileUpdate);
-    return () => window.removeEventListener('appfit:profile-updated', handleProfileUpdate);
-    
     function validateToken() {
         const storedToken = localStorage.getItem('@appfit:token');
         if (storedToken) {
@@ -65,6 +60,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             .catch(() => {});
         }
     }
+
+    // Escuta evento customizado de atualização de perfil para não precisar recarregar a página
+    const handleProfileUpdate = () => validateToken();
+    window.addEventListener('appfit:profile-updated', handleProfileUpdate);
+    return () => window.removeEventListener('appfit:profile-updated', handleProfileUpdate);
   }, []);
 
   const login = (jwt: string) => {

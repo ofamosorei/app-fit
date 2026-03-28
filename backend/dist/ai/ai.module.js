@@ -10,11 +10,14 @@ exports.AiModule = void 0;
 const common_1 = require("@nestjs/common");
 const ai_service_1 = require("./ai.service");
 const ai_controller_1 = require("./ai.controller");
+const auth_module_1 = require("../auth/auth.module");
+const user_module_1 = require("../user/user.module");
 let AiModule = class AiModule {
 };
 exports.AiModule = AiModule;
 exports.AiModule = AiModule = __decorate([
     (0, common_1.Module)({
+        imports: [auth_module_1.AuthModule, user_module_1.UserModule],
         providers: [ai_service_1.AiService],
         controllers: [ai_controller_1.AiController]
     })

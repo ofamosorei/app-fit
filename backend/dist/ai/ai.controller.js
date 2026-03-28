@@ -14,14 +14,16 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AiController = void 0;
 const common_1 = require("@nestjs/common");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const paid_access_guard_1 = require("../auth/paid-access.guard");
 const ai_service_1 = require("./ai.service");
 let AiController = class AiController {
     aiService;
     constructor(aiService) {
         this.aiService = aiService;
     }
-    async generatePlan(weight, height, age, sex, activityLevel, comorbidities, medications, goal) {
-        return this.aiService.generatePlan(weight, height, age, sex, activityLevel, comorbidities, medications, goal);
+    async generatePlan(req) {
+        return this.aiService.generatePlanForUser(req.user.id);
     }
     async analyzeMeal(imageBase64) {
         return this.aiService.analyzeMeal(imageBase64);
@@ -30,16 +32,9 @@ let AiController = class AiController {
 exports.AiController = AiController;
 __decorate([
     (0, common_1.Post)('generate-plan'),
-    __param(0, (0, common_1.Body)('weight')),
-    __param(1, (0, common_1.Body)('height')),
-    __param(2, (0, common_1.Body)('age')),
-    __param(3, (0, common_1.Body)('sex')),
-    __param(4, (0, common_1.Body)('activityLevel')),
-    __param(5, (0, common_1.Body)('comorbidities')),
-    __param(6, (0, common_1.Body)('medications')),
-    __param(7, (0, common_1.Body)('goal')),
+    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number, Number, String, String, String, String, String]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AiController.prototype, "generatePlan", null);
 __decorate([
@@ -51,6 +46,7 @@ __decorate([
 ], AiController.prototype, "analyzeMeal", null);
 exports.AiController = AiController = __decorate([
     (0, common_1.Controller)('ai'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, paid_access_guard_1.PaidAccessGuard),
     __metadata("design:paramtypes", [ai_service_1.AiService])
 ], AiController);
 //# sourceMappingURL=ai.controller.js.map

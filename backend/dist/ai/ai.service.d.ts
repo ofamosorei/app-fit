@@ -1,23 +1,13 @@
 import { ConfigService } from '@nestjs/config';
+import { UserService } from '../user/user.service';
 export declare class AiService {
     private configService;
+    private userService;
     private openai;
-    constructor(configService: ConfigService);
+    constructor(configService: ConfigService, userService: UserService);
     private calculateTDEE;
     private getCaloricTarget;
-    generatePlan(weight: number, height: number, age: number, sex: 'male' | 'female', activityLevel: string, comorbidities: string, medications: string, goal: string): Promise<{
-        waterTarget: number;
-        weeklyPlan: {
-            dayOfWeek: number;
-            dayName: string;
-            meals: {
-                time: string;
-                title: string;
-                description: string;
-                completed: boolean;
-            }[];
-        }[];
-    } | {
+    generatePlanForUser(userId: string): Promise<{
         waterTarget: any;
         weeklyPlan: {
             dayOfWeek: number;

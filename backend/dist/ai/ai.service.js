@@ -16,11 +16,14 @@ exports.AiService = void 0;
 const common_1 = require("@nestjs/common");
 const openai_1 = __importDefault(require("openai"));
 const config_1 = require("@nestjs/config");
+const user_service_1 = require("../user/user.service");
 let AiService = class AiService {
     configService;
+    userService;
     openai;
-    constructor(configService) {
+    constructor(configService, userService) {
         this.configService = configService;
+        this.userService = userService;
         this.openai = new openai_1.default({
             apiKey: this.configService.get('OPENAI_API_KEY') || 'mock_key',
         });
@@ -49,7 +52,14 @@ let AiService = class AiService {
             return tdee - 250;
         return tdee;
     }
-    async generatePlan(weight, height, age, sex, activityLevel, comorbidities, medications, goal) {
+    async generatePlanForUser(userId) {
+        const user = await this.userService.findById(userId);
+        if (!user)
+            throw new common_1.HttpException('Usuário não encontrado', common_1.HttpStatus.NOT_FOUND);
+        const { weight, height, age, sex, activityLevel, comorbidities, medications, goal, allergies, dislikedFoods, mealsPerDay } = user;
+        if (!weight || !height || !age || !sex) {
+            throw new common_1.HttpException('Perfil incompleto. Preencha o onboarding.', common_1.HttpStatus.BAD_REQUEST);
+        }
         const isMock = this.configService.get('OPENAI_API_KEY') === 'your_openai_api_key_here' || !this.configService.get('OPENAI_API_KEY');
         if (isMock) {
             return this.getMockPlan(weight, goal);
@@ -57,31 +67,45 @@ let AiService = class AiService {
         const tdee = this.calculateTDEE(weight, height, age, sex, activityLevel);
         const caloricTarget = this.getCaloricTarget(tdee, goal);
         const goalLabel = goal === 'fast' ? 'emagrecimento rápido' : goal === 'moderate' ? 'perda moderada' : 'manutenção de peso';
+        const allergiesText = allergies && allergies.trim() !== '' ? `Alergias/Intolerâncias: ${allergies}.` : 'Sem alergias.';
+        const dislikedFoodsText = dislikedFoods && dislikedFoods.trim() !== '' ? `Alimentos que ODEIA e NÃO PODE CONTER DE FORMA ALGUMA: ${dislikedFoods}.` : '';
+        const mealsFormat = mealsPerDay === '5' ? 'Café da Manhã, Lanche da Manhã, Almoço, Lanche da Tarde e Jantar (5 refeições)' : 'Café da Manhã, Almoço, Lanche da Tarde e Jantar (4 refeições)';
         try {
-            const prompt = `Você é uma nutricionista clínica e funcional especialista em emagrecimento.
-Baseado no paciente: ${weight}kg, ${height}cm, ${age} anos, Sexo ${sex === 'male' ? 'Masculino' : 'Feminino'}. Nível: ${activityLevel}. Objetivo: ${goalLabel}. Meta calórica de ${caloricTarget} kcal diárias (Déficit incluído).
+            const prompt = `Você é uma Nutricionista Funcional, Esportiva e Clínica de Elite, renomada por criar dietas altamente eficientes, saborosas e seguras para resultados expressivos.
 
-CRIE 3 PLANOS NUTRICIONAIS BASE (Plano A, Plano B, Plano C). O sistema no backend irá ler esses 3 planos e rotacioná-los automaticamente para preencher a semana inteira do paciente, então FOQUE apenas em criar 3 dias excelentes e variados.
-Regras OBRIGATÓRIAS:
-1. USE APENAS ALIMENTOS SIMPLES, FÁCEIS DE ENCONTRAR E BARATOS NO BRASIL (Ovos, frango, patinho moído, arroz, feijão, aveia, frutas básicas, etc). Nada caro ou importado.
-2. Pratos focados em ${comorbidities || 'saúde'} e adaptados para ${medications || 'sem medicamentos especiais'}.
-3. NÃO adicione chás nem suco detox no menu. (Nós do sistema faremos a adição nas datas certas).
-4. Cada plano base deve ter APENAS as 4 refeições principais (Café da Manhã, Almoço, Lanche da Tarde, Jantar).
+## DADOS DO PACIENTE OBRIGATÓRIOS
+- Biometria: ${weight}kg, ${height}cm, ${age} anos, Sexo ${sex === 'male' ? 'Masculino' : 'Feminino'}.
+- Nível de Atividade: ${activityLevel}.
+- Objetivo: **${goalLabel.toUpperCase()}**. Meta calórica fixada em: **${caloricTarget} kcal diárias**.
+- Histórico Clínico: ${comorbidities || 'Nenhum'}.
+- Uso de Medicação: ${medications || 'Nenhum'}.
+- **${allergiesText}** (RESTRIÇÃO ABSOLUTA, AJA COM RESPONSABILIDADE MÉDICA).
+- **${dislikedFoodsText}**
 
-Formato ESTRITO JSON:
+## SUA TAREFA
+Elabore 3 PLANOS NUTRICIONAIS BASE (Plano A, Plano B, Plano C) com EXATAMENTE ${caloricTarget} kcal cada. Esses planos serão rotacionados automaticamente durante a semana no seu App para o paciente.
+Formato de refeições obrigatório: **${mealsFormat}**.
+
+## REGRAS DE OURO DA DIETA (CRÍTICO)
+1. **Acessibilidade Absoluta**: O paciente mora no Brasil. NÃO crie receitas gourmet com ingredientes caros ou difíceis de encontrar ("salmão do alasca", "mirtilos", "leite de amêndoas puro", etc). Use ovos, frango, carne moída, arroz, feijão, aveia, frutas comuns, pão integral.
+2. **Qualidade Premium**: O prato deve parecer gostoso na descrição. Exemplo: Em vez de "Frango cozido", use "Filé de frango temperado na chapa com crosta leve e legumes assados".
+3. NÃO adicione sucos detox ou chás termogênicos de manhã/almoço, o Sistema fará isso depois automaticamente!
+4. Respeite IMPRESCINDIVELMENTE as alergias e alimentos odiados.
+
+Retorne no formato ESTRITO JSON:
 {
   "waterTarget": ${weight * 35},
   "basePlans": [
     {
       "meals": [ { "time": "08:00", "title": "Café da manhã", "description": "...", "completed": false } ]
     },
-    { "meals": [...] },
-    { "meals": [...] }
+    { "meals": [ ... ] },
+    { "meals": [ ... ] }
   ]
 }`;
             const response = await this.openai.chat.completions.create({
                 model: 'gpt-4o-mini',
-                messages: [{ role: 'user', content: prompt }],
+                messages: [{ role: 'system', content: prompt }],
                 response_format: { type: "json_object" }
             });
             const responseText = response.choices[0].message.content || '{}';
@@ -126,10 +150,12 @@ Formato ESTRITO JSON:
                     meals: clonedMeals
                 });
             }
-            return {
+            const finalPlan = {
                 waterTarget: parsedData.waterTarget || weight * 35,
                 weeklyPlan
             };
+            await this.userService.updateProfile(user.id, { plan: finalPlan });
+            return finalPlan;
         }
         catch (error) {
             console.error(error);
@@ -280,6 +306,7 @@ Seja realista nas quantidades de gramas (Lembre-se: 1 banana média = 100g, 4 ba
 exports.AiService = AiService;
 exports.AiService = AiService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [config_1.ConfigService])
+    __metadata("design:paramtypes", [config_1.ConfigService,
+        user_service_1.UserService])
 ], AiService);
 //# sourceMappingURL=ai.service.js.map
