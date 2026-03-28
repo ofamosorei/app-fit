@@ -3,7 +3,7 @@
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import {
   ArrowRight, ShieldCheck, CheckCircle2, ChevronDown, Check, PlayCircle,
-  Camera, Utensils, Zap, Droplets, Clock, MessageSquare, Star, Award, Search, Activity, Fingerprint, RefreshCcw, Lock, User, ShoppingCart, Repeat
+  Camera, Utensils, Zap, Droplets, Clock, MessageSquare, Star, Award, Search, Activity, Fingerprint, RefreshCcw, Lock, User, ShoppingCart, Repeat, Users, TrendingDown
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useState, useRef } from 'react';
@@ -115,7 +115,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-24 pb-48 px-6 overflow-hidden bg-white text-center">
+      <section className="relative pt-24 pb-20 sm:pb-32 px-6 overflow-hidden bg-white">
         <div className="absolute inset-0 opacity-[0.25] pointer-events-none">
           <motion.div animate={{ y: [0, -20, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }} className="absolute top-[20%] left-[10%] w-3 h-3 bg-red-400 rounded-sm rotate-12" />
           <motion.div animate={{ y: [0, 20, 0] }} transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }} className="absolute top-[30%] right-[15%] w-4 h-4 bg-emerald-400 rounded-full" />
@@ -123,100 +123,118 @@ export default function LandingPage() {
           <motion.div animate={{ y: [0, 25, 0] }} transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }} className="absolute top-[15%] right-[25%] w-2 h-2 bg-indigo-400 rounded-full" />
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto space-y-6 flex flex-col items-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="inline-flex items-center gap-2 bg-red-50 text-red-600 px-4 py-1.5 rounded-full font-bold text-xs tracking-widest uppercase border border-red-100 mb-2">
-            <Lock className="w-3.5 h-3.5" /> está pronta para transformar seu corpo e sua saúde?
-          </motion.div>
+        <div className="relative z-10 max-w-7xl mx-auto grid md:grid-cols-2 gap-12 sm:gap-8 items-center">
+          <div className="space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="inline-flex items-center gap-2 bg-red-50 text-red-600 px-4 py-1.5 rounded-full font-bold text-xs tracking-widest uppercase border border-red-100 mb-2">
+              <Lock className="w-3.5 h-3.5" /> está pronta para transformar seu corpo e sua saúde?
+            </motion.div>
 
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="text-[34px] sm:text-[58px] font-black leading-[1.1] tracking-tight text-slate-900 drop-shadow-sm">
-            Um aplicativo que cuida da sua alimentação e te ajuda a desinchar com <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">apoio de nutricionista</span>
-          </motion.h1>
+            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="text-[36px] sm:text-[52px] lg:text-[60px] font-black leading-[1.05] tracking-tight text-slate-900 drop-shadow-sm">
+              Um aplicativo que cuida da sua alimentação e te ajuda a desinchar com <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">apoio de nutricionista</span>
+            </motion.h1>
 
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="text-lg sm:text-[22px] text-slate-500 font-medium max-w-3xl mx-auto leading-snug">
-            Cardápios prontos, chás seca barriga, sucos detox e cálculo de calorias por foto, tudo com suporte e comunidade de alunos no WhatsApp.
-          </motion.p>
+            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="text-lg sm:text-[20px] text-slate-500 font-medium leading-snug">
+              Cardápios prontos, chás seca barriga, sucos detox e cálculo de calorias por foto, tudo com suporte e comunidade de alunos no WhatsApp.
+            </motion.p>
 
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.3, type: "spring", stiffness: 200 }} className="pt-6 pb-6 w-full flex flex-col items-center">
-            {primaryBtn("QUERO PERDER 10KG AGORA")}
-            <p className="text-xs text-slate-400 mt-4 font-semibold flex items-center gap-1 justify-center"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Acesso ao pacote unificado (Dietas + Scanner IA).</p>
-          </motion.div>
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.3, type: "spring", stiffness: 200 }} className="pt-6 pb-6 w-full flex flex-col items-center md:items-start">
+              {primaryBtn("QUERO PERDER 10KG AGORA")}
+              <p className="text-xs text-slate-400 mt-4 font-semibold flex items-center gap-1 justify-center md:justify-start"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Acesso ao pacote unificado (Dietas + Scanner IA).</p>
+            </motion.div>
+          </div>
 
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.4 }}
-            className="relative w-full max-w-md mx-auto mt-16 sm:mt-24 origin-top"
-            whileInView={{ scale: 1.15 }} // Aumenta 15% quando scrolla para baixo
-            viewport={{ margin: "-100px 0px 0px 0px", once: false, amount: "some" }}
+            className="relative w-full h-[600px] sm:h-[720px] flex items-center justify-center mt-10 md:mt-0"
           >
-            <PhoneMockup>
-              {/* Vídeo/Imagem mostrando o App em uso logo de cara */}
-              <img
-                src="/app-dashboard.png"
-                alt="Dashboard App"
-                className="w-full h-full object-cover object-top rounded-[32px] absolute inset-0 z-0 bg-slate-100"
-              />
+            <div className="relative z-10 transform scale-95 sm:scale-100 hover:scale-[1.03] transition-transform duration-500 origin-bottom">
+              <PhoneMockup>
+                {/* Vídeo/Imagem mostrando o App em uso logo de cara */}
+                <img
+                  src="/app-dashboard.png"
+                  alt="Dashboard App"
+                  className="w-full h-full object-cover object-top rounded-[32px] absolute inset-0 z-0 bg-slate-100"
+                />
 
-              {/* DYNAMIC NOTIFICATIONS OVERLAY (Evolução Contínua) */}
-              <div className="absolute top-8 sm:top-10 left-1/2 -translate-x-1/2 w-[90%] z-20">
-                <AnimatePresence mode="wait">
-                  {notifications.map((notif, idx) => {
-                    if (idx !== activeNotification) return null;
-                    const IconTag = notif.icon;
-                    return (
-                      <motion.div
-                        key={idx}
-                        initial={{ y: -40, opacity: 0, scale: 0.95 }}
-                        animate={{ y: 0, opacity: 1, scale: 1 }}
-                        exit={{ y: -20, opacity: 0, scale: 0.95 }}
-                        transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-                        className={`w-full bg-white/95 backdrop-blur-md rounded-[20px] p-4 shadow-[0_15px_35px_rgba(0,0,0,0.15)] flex gap-3 items-center border ${notif.border} ${notif.glow} absolute top-0 left-0`}
-                      >
-                        <div className={`w-10 h-10 bg-gradient-to-tr ${notif.color} flex items-center justify-center rounded-full text-white shrink-0 shadow-inner animate-pulse`}>
-                          <IconTag className="w-5 h-5" />
-                        </div>
-                        <div className="text-left w-full">
-                          <p className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">{notif.title}</p>
-                          <p className="text-[14px] sm:text-[15px] font-black text-slate-800 leading-tight">{notif.text}</p>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
-            </PhoneMockup>
-
-            {/* Stats Card Overlapping (Desktop) / Abaixo (Mobile) */}
-            <div className="mt-12 mx-auto sm:mt-0 sm:absolute sm:-bottom-32 sm:left-1/2 sm:-translate-x-1/2 w-[95%] sm:w-[800px] bg-slate-50 rounded-[32px] p-6 sm:p-8 shadow-2xl border border-slate-200 flex flex-col items-center z-30 transform transition-transform">
-              <div className="inline-flex flex-col items-center justify-center gap-1 mb-6">
-                <span className="text-2xl">🏆</span>
-                <span className="text-slate-500 font-black uppercase tracking-widest text-[11px] sm:text-[13px]">Veja nossos números</span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-10 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 w-full text-center">
-                <div className="flex flex-col items-center justify-center pt-4 sm:pt-0">
-                  <div className="text-[44px] sm:text-[52px] font-black text-[#8B5CF6] tracking-tighter leading-none mb-1">
-                    +<AnimatedCounter value={500} suffix="mil" />
-                  </div>
-                  <p className="font-bold text-slate-800 text-[14px] sm:text-[15px]">Alimentos já registrados</p>
+                {/* DYNAMIC NOTIFICATIONS OVERLAY (Evolução Contínua) */}
+                <div className="absolute top-8 sm:top-10 left-1/2 -translate-x-1/2 w-[90%] z-20">
+                  <AnimatePresence mode="wait">
+                    {notifications.map((notif, idx) => {
+                      if (idx !== activeNotification) return null;
+                      const IconTag = notif.icon;
+                      return (
+                        <motion.div
+                          key={idx}
+                          initial={{ y: -40, opacity: 0, scale: 0.95 }}
+                          animate={{ y: 0, opacity: 1, scale: 1 }}
+                          exit={{ y: -20, opacity: 0, scale: 0.95 }}
+                          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                          className={`w-full bg-white/95 backdrop-blur-md rounded-[20px] p-4 shadow-[0_15px_35px_rgba(0,0,0,0.15)] flex gap-3 items-center border ${notif.border} ${notif.glow} absolute top-0 left-0`}
+                        >
+                          <div className={`w-10 h-10 bg-gradient-to-tr ${notif.color} flex items-center justify-center rounded-full text-white shrink-0 shadow-inner animate-pulse`}>
+                            <IconTag className="w-5 h-5" />
+                          </div>
+                          <div className="text-left w-full">
+                            <p className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">{notif.title}</p>
+                            <p className="text-[14px] sm:text-[15px] font-black text-slate-800 leading-tight">{notif.text}</p>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
                 </div>
-
-                <div className="flex flex-col items-center justify-center pt-4 sm:pt-0">
-                  <div className="text-[44px] sm:text-[52px] font-black text-[#8B5CF6] tracking-tighter leading-none mb-1">
-                    +<AnimatedCounter value={2000} suffix="kg" />
-                  </div>
-                  <p className="font-bold text-slate-800 text-[14px] sm:text-[15px]">Perdidos</p>
-                </div>
-
-                <div className="flex flex-col items-center justify-center pt-4 sm:pt-0">
-                  <div className="text-[44px] sm:text-[52px] font-black text-[#8B5CF6] tracking-tighter leading-none mb-1">
-                    +<AnimatedCounter value={10} suffix="mil" />
-                  </div>
-                  <p className="font-bold text-slate-800 text-[14px] sm:text-[15px]">Pessoas utilizam diariamente</p>
-                </div>
-              </div>
+              </PhoneMockup>
             </div>
           </motion.div>
+        </div>
+
+        {/* Stats Card Reposicionado Abaixo do Grid */}
+        <div className="mt-20 max-w-7xl mx-auto px-6 relative z-30">
+          <div className="w-[95%] sm:w-full mx-auto bg-[#0A0A0A] rounded-[32px] p-8 sm:p-10 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] border border-white/10 flex flex-col items-center transform transition-transform">
+            <div className="inline-flex flex-col items-center justify-center gap-1 mb-10">
+              <span className="text-3xl">🔥</span>
+              <span className="text-slate-400 font-black uppercase tracking-widest text-[12px] sm:text-[14px]">Provas Reais e Resultados</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 sm:gap-6 divide-y sm:divide-y-0 sm:divide-x divide-white/10 w-full text-center">
+              
+              {/* Usuários */}
+              <div className="flex flex-col items-center justify-center pt-8 sm:pt-0">
+                <div className="w-14 h-14 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500 mb-4 hover:scale-110 transition-transform">
+                  <Users className="w-7 h-7" />
+                </div>
+                <div className="text-[48px] sm:text-[56px] font-black text-emerald-400 tracking-tighter leading-none mb-2 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+                  +<AnimatedCounter value={175} suffix="mil" />
+                </div>
+                <p className="font-bold text-slate-300 text-[15px]">Usuários</p>
+              </div>
+
+              {/* Kg Perdidos */}
+              <div className="flex flex-col items-center justify-center pt-8 sm:pt-0">
+                <div className="w-14 h-14 bg-orange-500/20 rounded-full flex items-center justify-center text-orange-500 mb-4 hover:scale-110 transition-transform">
+                  <TrendingDown className="w-7 h-7" />
+                </div>
+                <div className="text-[48px] sm:text-[56px] font-black text-orange-400 tracking-tighter leading-none mb-2 drop-shadow-[0_0_15px_rgba(251,146,60,0.3)]">
+                  +<AnimatedCounter value={714} suffix="kg" />
+                </div>
+                <p className="font-bold text-slate-300 text-[15px]">Gordura Derretida</p>
+              </div>
+
+              {/* Receitas */}
+              <div className="flex flex-col items-center justify-center pt-8 sm:pt-0">
+                <div className="w-14 h-14 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500 mb-4 hover:scale-110 transition-transform">
+                  <Utensils className="w-7 h-7" />
+                </div>
+                <div className="text-[48px] sm:text-[56px] font-black text-emerald-400 tracking-tighter leading-none mb-2 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+                  +<AnimatedCounter value={3} suffix="mil" />
+                </div>
+                <p className="font-bold text-slate-300 text-[15px]">Refeições Inteligentes</p>
+              </div>
+
+            </div>
+          </div>
         </div>
       </section>
 
@@ -251,27 +269,35 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Block 2 (O Mecanismo Mágico - Light com Vídeo) */}
-      <section className="bg-white py-24 sm:py-36 px-6 relative">
-        <div className="absolute top-0 right-0 w-[40%] h-[400px] bg-emerald-500/10 blur-[140px] pointer-events-none rounded-full"></div>
+      {/* Block 2 (O Mecanismo Mágico - Agora Dark com Imagem Gerada) */}
+      <section className="bg-[#0A0A0A] border-t border-white/5 py-24 sm:py-36 px-6 relative overflow-hidden">
+        <div className="absolute top-0 right-1/4 w-[40%] h-[400px] bg-emerald-500/10 blur-[140px] pointer-events-none rounded-full"></div>
 
-        <div className="max-w-6xl mx-auto grid sm:grid-cols-2 gap-12 sm:gap-20 items-center">
-          <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="space-y-6 text-center sm:text-left order-2 sm:order-1">
-            <span className="text-emerald-500 font-black tracking-widest uppercase text-sm">O ATALHO TECNOLÓGICO</span>
-            <h2 className="text-[34px] sm:text-[48px] leading-[1.1] font-black tracking-tight text-slate-900">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 sm:gap-20 items-center">
+          <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="space-y-6 text-center md:text-left order-2 md:order-1 relative z-10">
+            <span className="text-emerald-500 font-black tracking-widest uppercase text-[14px]">O Scan Tecnológico</span>
+            <h2 className="text-[34px] sm:text-[48px] leading-[1.1] font-black tracking-tight text-white">
               Tire uma foto, tenha a resposta em dois segundos.
             </h2>
-            <p className="text-slate-500 text-lg sm:text-[22px] font-medium leading-relaxed">
+            <p className="text-slate-400 text-lg sm:text-[22px] font-medium leading-relaxed">
               Dúvida se aquele doce estraga seus resultados? Literalmente: aponte o celular e tire foto. Nossa IA lê a matriz do prato, calcula e devolve as calorias ajustadas para você não quebrar o processo.
             </p>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="order-1 sm:order-2 flex justify-center">
-            <div className="relative w-full max-w-[280px] sm:max-w-[340px] rounded-[32px] overflow-hidden shadow-2xl border-[8px] border-white bg-slate-100 rotate-2 hover:rotate-0 transition-transform duration-500">
-              <img src="/scanner-pov.gif" alt="POV Tirar Foto (Demo Scanner)" className="w-full h-auto object-cover aspect-[9/16]" />
-              <div className="absolute top-4 right-4 bg-emerald-500 text-white rounded-full p-2 shadow-lg animate-bounce hidden sm:block">
-                <Check className="w-6 h-6 stroke-[3]" />
+            <div className="pt-4 flex flex-col md:flex-row items-center gap-4 hidden sm:flex">
+              <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400">
+                <Camera className="w-6 h-6" />
               </div>
-              <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-[24px] pointer-events-none"></div>
+              <p className="text-slate-300 font-bold max-w-xs">Mais de 12.000 alimentos reconhecidos instantaneamente.</p>
+            </div>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="order-1 md:order-2 flex justify-center">
+            <div className="relative w-full max-w-[500px] origin-center transform transition-all duration-700 hover:scale-[1.02]">
+              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-indigo-500 rounded-[34px] opacity-20 blur-xl"></div>
+              <div className="relative rounded-[32px] overflow-hidden shadow-2xl border border-white/10 bg-black group">
+                {/* Generated Split-Screen HUD */}
+                <img src="/teste_scanner_1774677997387.png" alt="Scanner de Alimentos HUD" className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-1000 ease-out" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -312,28 +338,63 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Autoridade Médica/Nutricional (Dark mode bonitinho) */}
-      <section className="bg-[#050505] text-white py-24 px-6 border-b border-white/5 relative overflow-hidden">
+      {/* Dobra 5: Autoridade Médica/Nutricional */}
+      <section className="bg-[#050505] text-white py-24 sm:py-32 px-6 border-b border-t border-white/5 relative overflow-hidden">
         <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[400px] h-[400px] bg-indigo-600/10 blur-[120px] rounded-full"></div>
-        <div className="max-w-5xl mx-auto grid md:grid-cols-[1fr_2fr] gap-12 items-center relative z-10">
-          <div className="w-full aspect-square bg-[#111] rounded-[36px] overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center p-2 relative">
-            <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-transparent"></div>
-            <img src="/dra.png" alt="Dra. Validação" className="w-full h-full object-cover object-top rounded-[28px] opacity-90" />
+        <div className="max-w-6xl mx-auto grid md:grid-cols-[4fr_5fr] gap-12 sm:gap-20 items-center relative z-10">
+          <div className="w-full aspect-[4/5] bg-[#111] rounded-[36px] overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] border border-white/10 flex items-center justify-center relative translate-y-0 group hover:-translate-y-2 transition-transform duration-700">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
+            <img src="/nutri_especialista_1774677887914.png" alt="Dra. Especialista" className="w-full h-full object-cover object-top opacity-100" />
+            <div className="absolute bottom-6 left-6 z-20">
+              <div className="flex items-center gap-2 mb-2">
+                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                <span className="text-emerald-400 font-bold text-xs uppercase tracking-widest bg-black/50 px-2 py-1 rounded backdrop-blur-md">Método Clínico Validado</span>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-6 text-center md:text-left">
-            <div className="inline-block bg-indigo-500/20 text-indigo-400 font-bold px-4 py-1.5 rounded-full text-sm uppercase tracking-widest border border-indigo-500/30">
+          <div className="space-y-8 text-center md:text-left">
+            <div className="inline-block bg-indigo-500/20 text-indigo-400 font-bold px-4 py-1.5 rounded-full text-[13px] uppercase tracking-widest border border-indigo-500/30">
               Aprovado por Nutricionistas
             </div>
             <h2 className="text-[32px] md:text-[42px] font-black leading-tight tracking-tight">
-              "Emagrecer não é fome, é sobre organizar a confusão alimentar de forma mecânica e simples."
+              "Emagrecer sustentavelmente nunca foi sobre passar fome, é sobre organizar a confusão alimentar com método científico."
             </h2>
-            <p className="text-lg text-slate-400">
-              "Minha experiência de 8 anos validou que fornecer um cardápio complexo afasta os pacientes dos primeiros 10kg de meta. Com as listas automáticas do SECA APP e a clareza nas substituições da rotina, a tecnologia vira o 'nutricionista de controle' morando no seu bolso."
+            <p className="text-lg sm:text-[20px] text-slate-400 leading-relaxed font-medium">
+              "Minha experiência de clínica mostra que um cardápio denso e restritivo afasta os pacientes da meta dos -10kg. A chave é aderência. O SECA APP substitui a fricção de contar calorias manualmente pela automação, agindo como o 'nutricionista residente' no seu celular."
             </p>
-            <div className="pt-4 mt-4 border-t border-slate-800">
-              <p className="font-bold text-xl text-white">Dra. Nome da Nutricionista</p>
-              <p className="text-indigo-400 font-medium text-sm mt-1">Nutricionista Especialista — Pós Graduada (Substitua no app pelo seu perfil)</p>
+            <div className="pt-6 mt-6 border-t border-slate-800">
+              <p className="font-black text-[24px] text-white tracking-tight">Dra. Sarah Jenkins</p>
+              <p className="text-indigo-400 font-bold text-[15px] mt-1 tracking-wide">Especialista Clínica RDN, LDN — CRN-X 00000</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Dobra 6: Resultado Emocional "Vida Real" (Nova Seção) */}
+      <section className="bg-slate-50 py-24 sm:py-36 px-6 overflow-hidden relative border-b border-slate-200">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+          <div className="order-2 md:order-1 space-y-8 text-center md:text-left">
+            <span className="text-emerald-500 font-black tracking-widest uppercase text-[14px]">Resultado Para a Vida</span>
+            <h2 className="text-[36px] sm:text-[50px] font-black leading-[1.05] tracking-tight text-slate-900 drop-shadow-sm">
+              Perder 12kg e recuperar sua energia e autoestima <span className="text-emerald-600">sem pisar na academia</span>.
+            </h2>
+            <p className="text-slate-500 text-lg sm:text-[22px] font-medium leading-relaxed">
+              O objetivo do protocolo não é te transformar num atleta focado em punição diária, mas sim regularizar o seu metabolismo para um estado de queima natural. Vista aquela calça que estava escondida no armário, levante do sofá com mais ânimo e sorria sentindo a leveza de um corpo destravado.
+            </p>
+            <div className="pt-4 flex justify-center md:justify-start">
+              {primaryBtn("COMEÇAR MEU PROTOCOLO")}
+            </div>
+          </div>
+          
+          <div className="order-1 md:order-2 relative w-full h-[550px] rounded-[32px] overflow-hidden shadow-2xl border-[10px] border-white group transform hover:rotate-1 transition-transform duration-700">
+            <div className="absolute inset-0 bg-slate-900/10 mix-blend-multiply z-10 transition-opacity group-hover:opacity-0"></div>
+            <img src="/vida_real_feliz_1774677909624.png" alt="Mulher feliz lendo livro" className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-1000" />
+            
+            {/* Tag flutuante emocional */}
+            <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-md px-5 py-3 rounded-[20px] shadow-xl z-20 flex items-center gap-3 animate-fade-in-up">
+              <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
+              <p className="font-bold text-slate-800 text-sm">-12 KG no espelho</p>
             </div>
           </div>
         </div>
@@ -346,116 +407,199 @@ export default function LandingPage() {
             <h2 className="text-[34px] sm:text-[46px] font-black text-slate-900 tracking-tight leading-[1.1]">Perder 10kg virou realidade palpável</h2>
           </div>
           <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch h-full">
-            <div className="w-full md:w-1/3 min-h-[420px] bg-slate-50 rounded-[32px] overflow-hidden relative group flex flex-col p-10 shadow-sm border border-slate-200 justify-between items-start text-left flex-shrink-0 transition-transform hover:-translate-y-2">
-              <div className="text-yellow-400 flex gap-1"><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /></div>
-              <p className="font-bold text-slate-700 text-[18px] leading-relaxed italic border-t border-slate-200 pt-6 my-6 flex-1">"Fui pro mercado, abri a lista das minhas compras no app. Resolvido. Em 4 semanas já estava com -6kg bebendo as receitas certas."</p>
-              <div className="w-full">
-                <div className="font-black text-slate-900 text-lg">Bruna T.</div>
-                <div className="text-emerald-500 font-bold text-xs uppercase pt-1">-6 KG (MÊS 1)</div>
-              </div>
-            </div>
-
-            <div className="w-full md:w-1/3 min-h-[420px] bg-slate-50 rounded-[32px] overflow-hidden relative group flex flex-col p-10 shadow-sm border border-slate-200 justify-between items-start text-left flex-shrink-0 transition-transform hover:-translate-y-2">
-              <div className="text-yellow-400 flex gap-1"><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /></div>
-              <p className="font-bold text-slate-700 text-[18px] leading-relaxed italic border-t border-slate-200 pt-6 my-6 flex-1">"A facilidade brutal do Scanner apagou meu medo de falhar ao sair num sábado à noite."</p>
-              <div className="w-full">
-                <div className="font-black text-slate-900 text-lg">Amanda F.</div>
-                <div className="text-emerald-500 font-bold text-xs uppercase pt-1">CONTROLE TOTAL MANTIDO</div>
-              </div>
-            </div>
-
-            <div className="w-full md:w-1/3 min-h-[420px] bg-slate-100 rounded-[32px] overflow-hidden relative group flex flex-col p-10 shadow-lg border-2 border-slate-50 justify-between items-start text-left bg-gradient-to-br from-indigo-950 to-slate-900 flex-shrink-0 transition-transform hover:-translate-y-2">
-              <div className="text-yellow-400 flex gap-1"><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /></div>
-              <p className="font-bold text-white/95 text-[20px] leading-relaxed flex-1 mt-6">"É tipo colocar um 'cheat mode' ativado na vida. Muito prático saber só fazer substituições quando falta frango. Emagreci."</p>
-              <div className="w-full">
-                <div className="font-black text-white text-xl">Mariana Lopes</div>
-                <div className="text-indigo-400 font-bold text-sm">-11 KG EM 35 DIAS</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Oferta Irresistível unificada */}
-      <section className="bg-slate-50 py-24 sm:py-32 px-6 border-b border-slate-200 relative">
-        <div className="absolute left-[10%] top-[20%] w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full"></div>
-        <div className="max-w-[500px] mx-auto space-y-12 text-center relative z-10">
-          <div className="space-y-4">
-            <span className="text-indigo-600 font-black uppercase tracking-widest text-[14px]">O ÚLTIMO PASSO</span>
-            <h2 className="text-[36px] sm:text-[46px] font-black text-slate-900 tracking-tight leading-[1.05]">Pacote Detox Inclusivo I.A</h2>
-          </div>
-
-          <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="bg-white p-8 sm:p-14 rounded-[36px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] border-2 border-slate-100/80 text-center relative overflow-hidden">
-
-            <div className="absolute top-0 left-0 w-full bg-red-600 text-white font-black text-[12px] uppercase tracking-widest py-2 animate-pulse">
-              Oferta Limitada Unificada Hoje
-            </div>
-
-            <div className="pt-8 pb-8 mb-8 border-b border-slate-100 flex flex-col items-center">
-              <p className="text-slate-400 text-lg font-medium line-through mb-1">R$ 500 (Nutricionista + App Gringo)</p>
-              <h3 className="text-[56px] font-black text-slate-900 tracking-tighter leading-none mt-2">R$ 29,90<span className="text-2xl text-slate-400 font-bold tracking-normal inline-block ml-1">/mês</span></h3>
-              <p className="text-emerald-500 font-bold uppercase text-[13px] tracking-widest mt-4 bg-emerald-50 px-4 py-1.5 rounded-full inline-block border border-emerald-100/50">MENOS DE R$ 1 POR DIA</p>
-            </div>
-
-            <div className="space-y-5 mb-10 text-left w-full mx-auto px-1">
-              {[
-                'Acesso Protocolo 30 Dias (Perder 10kg)',
-                'Scanner Nutricional Ilimitado por IA',
-                'Receitas Poderosas Detox + Chás',
-                'Lista de Compras Atualizada na Aba',
-                'Acesso Pacote Único (Tudo Liberado)'
-              ].map((item, i) => (
-                <div key={i} className="flex items-start gap-4 text-[16px] text-slate-700 font-bold leading-snug">
-                  <div className="w-6 h-6 bg-emerald-500 shadow-sm shadow-emerald-200 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3.5 h-3.5 text-white stroke-[4]" />
+            <div className="w-full md:w-1/3 flex flex-col items-center">
+              <div className="w-full bg-slate-50 rounded-[32px] overflow-hidden relative group flex flex-col p-8 sm:p-10 shadow-sm border border-slate-200 justify-between items-start text-left flex-shrink-0 transition-transform hover:-translate-y-2 h-[420px]">
+                <div className="text-yellow-400 flex gap-1"><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /></div>
+                <p className="font-bold text-slate-700 text-[18px] leading-relaxed italic border-t border-slate-200 pt-6 my-6 flex-1">"Fui pro mercado, abri a lista das minhas compras no app. Resolvido. Em 4 semanas já estava com -6kg bebendo as receitas certas."</p>
+                <div className="w-full mt-auto">
+                  <div className="flex items-center gap-4">
+                    <img src="/avatar_bruna_1774678119619.png" alt="Avatar Bruna T." className="w-14 h-14 rounded-full object-cover shadow-sm ring-2 ring-emerald-500/20" />
+                    <div>
+                      <div className="font-black text-slate-900 text-lg leading-tight">Bruna T.</div>
+                      <div className="text-emerald-500 font-bold text-[11px] uppercase mt-0.5 bg-emerald-50 px-2 py-0.5 rounded inline-block">-6 KG (MÊS 1)</div>
+                    </div>
                   </div>
-                  {item}
                 </div>
-              ))}
+              </div>
             </div>
 
-            <div className="mb-6"><CountdownTimer /></div>
-
-            <button
-              onClick={() => router.push('/onboarding')}
-              className="w-full bg-[#21C55D] hover:bg-[#16A34A] text-white py-5 px-6 rounded-2xl font-black text-[19px] uppercase tracking-wide transition-all shadow-[0_15px_30px_-5px_rgba(34,197,94,0.4)] hover:scale-[1.03] active:scale-[0.98] border-b-4 border-[#15803d]"
-            >
-              CONCLUIR MEU ACESSO AQUI
-            </button>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Garantia Apsoluta (Estilizada bonita) */}
-      <section className="bg-[#111] py-20 px-6 overflow-hidden relative">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,191,36,0.1)_0,transparent_100%)]"></div>
-        <div className="max-w-4xl mx-auto bg-gradient-to-r from-yellow-600 to-amber-500 rounded-[32px] p-[3px] shadow-2xl relative z-10">
-          <div className="bg-[#0A0A0A] rounded-[29px] p-8 sm:p-12 flex flex-col sm:flex-row items-center gap-10 text-center sm:text-left">
-            <div className="w-28 h-28 flex-shrink-0 from-amber-400 bg-gradient-to-tr to-yellow-600 rounded-full flex items-center justify-center shadow-xl shadow-amber-500/20">
-              <Lock className="w-12 h-12 text-black" />
+            <div className="w-full md:w-1/3 flex flex-col items-center">
+              <div className="w-full bg-slate-50 rounded-[32px] overflow-hidden relative group flex flex-col p-8 sm:p-10 shadow-sm border border-slate-200 justify-between items-start text-left flex-shrink-0 transition-transform hover:-translate-y-2 h-[420px]">
+                <div className="text-yellow-400 flex gap-1"><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /></div>
+                <p className="font-bold text-slate-700 text-[18px] leading-relaxed italic border-t border-slate-200 pt-6 my-6 flex-1">"A facilidade brutal do Scanner apagou meu medo de falhar ao sair num sábado à noite."</p>
+                <div className="w-full mt-auto">
+                  <div className="flex items-center gap-4">
+                    <img src="/avatar_amanda_1774678168549.png" alt="Avatar Amanda F." className="w-14 h-14 rounded-full object-cover shadow-sm ring-2 ring-emerald-500/20" />
+                    <div>
+                      <div className="font-black text-slate-900 text-lg leading-tight">Amanda F.</div>
+                      <div className="text-emerald-500 font-bold text-[11px] uppercase mt-0.5 bg-emerald-50 px-2 py-0.5 rounded inline-block">CONTROLE TOTAL MANTIDO</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="space-y-4">
-              <h3 className="text-[28px] sm:text-[36px] font-black text-white tracking-tight leading-tight">Garantia de Queima Ouro — 7 Dias</h3>
-              <p className="text-slate-300 text-lg leading-relaxed font-medium">
-                Abra sua lista de supermercado. Siga nossa biologia. Teste o scanner visual em tempo real. Se nos primeiros dias o seu corpo continuar o mesmo ou você odiar, com um botão você recebe todo o reembolso. Sem estresse.
-              </p>
+
+            <div className="w-full md:w-1/3 flex flex-col items-center">
+              <div className="w-full bg-slate-100 rounded-[32px] overflow-hidden relative group flex flex-col p-8 sm:p-10 shadow-lg border-2 border-slate-50 justify-between items-start text-left bg-gradient-to-br from-indigo-950 to-slate-900 flex-shrink-0 transition-transform hover:-translate-y-2 h-[420px]">
+                <div className="text-yellow-400 flex gap-1"><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /><Star className="fill-yellow-400 w-6 h-6" /></div>
+                <p className="font-bold text-white/95 text-[19px] leading-relaxed flex-1 mt-6">"É tipo colocar um 'cheat mode' ativado na vida. Prático saber fazer pequenas substituições quando falta algo. Emagreci comendo bem."</p>
+                <div className="w-full mt-auto">
+                  <div className="flex items-center gap-4">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Avatar Mariana" className="w-14 h-14 rounded-full object-cover shadow-xl ring-2 ring-indigo-500" />
+                    <div>
+                      <div className="font-black text-white text-xl leading-tight">Mariana Lopes</div>
+                      <div className="text-indigo-400 font-bold text-xs uppercase mt-0.5">-11 KG EM 35 DIAS</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer Bonitinho */}
-      <footer className="bg-[#111] py-16 px-6 border-t border-white/10 text-center flex flex-col items-center">
-        <p className="font-black text-[26px] text-white tracking-tighter mb-8">SECA<span className="text-[#21C55D]">APP</span></p>
+      {/* Oferta Irresistível unificada (Agora Dark + Mockup Lateral) */}
+      <section className="bg-[#0A0A0A] py-24 sm:py-36 px-6 relative border-t border-white/5 overflow-hidden">
+        <div className="absolute left-[10%] top-[20%] w-[500px] h-[500px] bg-emerald-600/10 blur-[150px] rounded-full"></div>
+        
+        <div className="max-w-7xl mx-auto grid md:grid-cols-[1fr_1fr] gap-16 lg:gap-24 items-center relative z-10">
+          
+          <div className="space-y-10 text-center md:text-left">
+            <div className="space-y-4">
+              <span className="text-emerald-500 font-black uppercase tracking-widest text-[14px]">ACESSO IMEDIATO</span>
+              <h2 className="text-[36px] sm:text-[48px] lg:text-[56px] font-black text-white tracking-tight leading-[1.05]">
+                O passe final para destravar o seu emagrecimento
+              </h2>
+            </div>
 
-        <div className="flex flex-wrap justify-center gap-6 text-slate-500 text-sm font-bold mb-10">
-          <a href="#" className="hover:text-slate-300 transition-colors">Termos de Uso</a>
-          <a href="#" className="hover:text-slate-300 transition-colors">Política Absoluta de Privacidade</a>
+            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="bg-[#111] p-8 sm:p-12 rounded-[36px] shadow-2xl border border-white/10 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full bg-emerald-600 text-white font-black text-[12px] uppercase tracking-widest py-2 text-center">
+                Vagas com Desconto Liberadas Hoje
+              </div>
+
+              <div className="pt-10 pb-8 mb-8 border-b border-white/10 flex flex-col md:items-start items-center">
+                <p className="text-slate-400 text-lg font-medium line-through mb-1">Valor Original: R$ 450</p>
+                <h3 className="text-[50px] sm:text-[60px] font-black text-white tracking-tighter leading-none mt-1">
+                  R$ 29,90<span className="text-2xl text-slate-500 font-bold tracking-normal inline-block ml-1">/mês</span>
+                </h3>
+                <p className="text-emerald-400 font-bold uppercase text-[12px] tracking-widest mt-4 bg-emerald-500/10 px-4 py-1.5 rounded-full inline-block border border-emerald-500/20">
+                  ASSINATURA SEMESTRAL GARANTIDA
+                </p>
+              </div>
+
+              <div className="space-y-4 mb-10 text-left w-full">
+                {[
+                  'App Protocolo 30 Dias (-10kg)',
+                  'Scanner IA Fotográfico Ilimitado',
+                  'Sucos Detox & Chás Queimadores',
+                  'Lista de Mercado Gerada no App'
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-4 text-[16px] text-slate-300 font-bold">
+                    <div className="w-6 h-6 bg-emerald-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Check className="w-4 h-4 text-emerald-400 stroke-[3]" />
+                    </div>
+                    {item}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mb-6"><CountdownTimer /></div>
+
+              <button
+                onClick={() => router.push('/onboarding')}
+                className="w-full bg-[#21C55D] hover:bg-[#16A34A] text-white py-5 px-6 rounded-2xl font-black text-[18px] uppercase tracking-wide transition-all shadow-[0_15px_30px_-5px_rgba(34,197,94,0.3)] hover:scale-[1.03] active:scale-[0.98] border-b-4 border-[#15803d]"
+              >
+                GARANTIR MINHA VAGA AGORA
+              </button>
+            </motion.div>
+          </div>
+
+          <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="relative h-[650px] sm:h-[750px] flex items-center justify-center hidden md:flex perspective-1000">
+            <div className="transform rotate-y-[-15deg] rotate-x-[5deg] scale-110 shadow-2xl transition-transform duration-700 hover:rotate-y-0 hover:rotate-x-0">
+              <PhoneMockup dark>
+                <div className="w-full h-full bg-[#111] absolute inset-0 rounded-[32px] overflow-hidden flex flex-col p-6 items-center text-center justify-center border border-white/5">
+                  <ShieldCheck className="w-16 h-16 text-emerald-500 mb-6 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
+                  <h3 className="text-white font-black text-[24px] mb-2">Acesso Liberado</h3>
+                  <p className="text-slate-400 font-medium text-[15px] mb-10 px-4">Seu ambiente seguro já está preparado para receber seu acesso VIP.</p>
+                  
+                  <div className="w-full space-y-4">
+                    <div className="w-full h-14 bg-white/5 rounded-2xl border border-white/10 flex items-center px-4 animate-pulse">
+                      <div className="w-8 h-8 rounded-full bg-emerald-500/20 mr-4"></div>
+                      <div className="h-2 w-24 bg-white/20 rounded-full"></div>
+                    </div>
+                    <div className="w-full h-14 bg-white/5 rounded-2xl border border-white/10 flex items-center px-4 animate-pulse delay-75">
+                      <div className="w-8 h-8 rounded-full bg-emerald-500/20 mr-4"></div>
+                      <div className="h-2 w-32 bg-white/20 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+              </PhoneMockup>
+            </div>
+          </motion.div>
+
+        </div>
+      </section>
+
+      {/* Garantia Absoluta com Selos Modernizados */}
+      <section className="bg-[#050505] border-t border-white/5 py-20 px-6 overflow-hidden relative">
+        <div className="max-w-5xl mx-auto flex flex-col items-center">
+          
+          <div className="bg-gradient-to-br from-emerald-900/40 to-black rounded-[40px] p-[2px] shadow-2xl shadow-emerald-900/20 relative z-10 w-full mb-12">
+            <div className="bg-[#0A0A0A] rounded-[38px] p-8 sm:p-14 flex flex-col md:flex-row items-center gap-10 md:gap-16 text-center md:text-left">
+              
+              {/* Selo Visual Desenhado */}
+              <div className="w-40 h-40 flex-shrink-0 relative flex items-center justify-center">
+                <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full"></div>
+                <div className="w-full h-full border-[6px] border-emerald-500 rounded-full flex flex-col items-center justify-center relative bg-[#111] shadow-[inset_0_0_20px_rgba(16,185,129,0.3)]">
+                  <span className="font-black text-[46px] text-white leading-none tracking-tighter">7</span>
+                  <span className="font-bold text-[14px] text-emerald-400 uppercase tracking-widest mt-1">Dias Seguros</span>
+                  
+                  {/* Fitas decorativas laterais */}
+                  <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-4 h-8 bg-[#0A0A0A]"></div>
+                  <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-4 h-8 bg-[#0A0A0A]"></div>
+                </div>
+                <div className="absolute bottom-[-10px] bg-emerald-500 text-black px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-widest border-2 border-[#0A0A0A]">
+                  Garantia
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-[30px] sm:text-[40px] font-black text-white tracking-tight leading-[1.1]">Risco Zero e Satisfação Padrão Ouro</h3>
+                <p className="text-slate-400 text-[17px] sm:text-[19px] leading-relaxed font-medium">
+                  Abra sua lista, siga o mecanismo de scanner por fotos. Se o seu corpo continuar o mesmo ou se você simplesmente se arrepender da experiência visual, basta um toque para receber seu dinheiro de volta integralmente. Simples, justo e transparente.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Logos Security and Payment Strip */}
+          <div className="flex flex-col items-center gap-6 opacity-60">
+            <div className="flex items-center gap-2 text-slate-400 font-bold text-sm tracking-widest uppercase">
+              <Lock className="w-4 h-4" /> Pagamento 100% Criptografado SSL
+            </div>
+            <div className="flex gap-4 sm:gap-8 flex-wrap justify-center items-center invert grayscale brightness-200">
+              <div className="text-[20px] font-black tracking-tighter border-2 px-2 py-0.5 rounded">VISA</div>
+              <div className="text-[20px] font-black tracking-tighter flex"><div className="w-6 h-6 rounded-full bg-current mix-blend-multiply"></div><div className="w-6 h-6 rounded-full bg-current -ml-3 mix-blend-multiply"></div><span className="ml-2 pt-0.5 text-[15px]">mastercard</span></div>
+              <div className="text-[20px] font-black tracking-tighter flex items-center font-serif italic pr-2">Amex</div>
+              <div className="text-[20px] font-black tracking-tighter text-emerald-500 border border-current px-3 py-0.5 rounded-full flex items-center gap-1"><Zap className="w-4 h-4 fill-current"/> PIX</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer Minimalista */}
+      <footer className="bg-[#000] py-16 px-6 text-center flex flex-col items-center">
+        <p className="font-black text-[26px] text-white tracking-tighter mb-8 opacity-50">SECA<span className="text-emerald-600">APP</span></p>
+
+        <div className="flex flex-wrap justify-center gap-6 text-slate-600 text-sm font-bold mb-10">
+          <a href="#" className="hover:text-emerald-500 transition-colors">Termos Privados de Uso</a>
+          <a href="#" className="hover:text-emerald-500 transition-colors">Política Absoluta de Privacidade</a>
+          <a href="#" className="hover:text-emerald-500 transition-colors">Aviso Legal</a>
         </div>
 
-        <p className="text-[13px] text-slate-600 font-medium max-w-lg mx-auto leading-relaxed">
-          Este produto orienta via IA. Casos médicos isolados requerem liberação médica específica.<br /><br />
-          © 2026 SECA APP INT'L. Todos os direitos reservados.
+        <p className="text-[12px] text-slate-700 font-medium max-w-xl mx-auto leading-relaxed">
+          Os resultados variam de indivíduo para indivíduo, baseados em compromisso biológico intrínseco. Nenhuma recomendação aqui feita substitui orientações estritas do seu conselho médico pessoal.<br /><br />
+          © 2026 Inteligência Nutricional SECA APP.
         </p>
       </footer>
 
