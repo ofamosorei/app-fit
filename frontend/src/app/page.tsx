@@ -115,7 +115,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-24 pb-20 sm:pb-32 px-6 overflow-hidden bg-white">
+      <section className="relative pt-24 pb-6 sm:pb-10 px-6 overflow-visible bg-white">
         <div className="absolute inset-0 opacity-[0.25] pointer-events-none">
           <motion.div animate={{ y: [0, -20, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }} className="absolute top-[20%] left-[10%] w-3 h-3 bg-red-400 rounded-sm rotate-12" />
           <motion.div animate={{ y: [0, 20, 0] }} transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }} className="absolute top-[30%] right-[15%] w-4 h-4 bg-emerald-400 rounded-full" />
@@ -190,47 +190,50 @@ export default function LandingPage() {
           </motion.div>
         </div>
 
-        {/* Stats Card Reposicionado Abaixo do Grid */}
-        <div className="mt-20 max-w-7xl mx-auto px-6 relative z-30">
-          <div className="w-[95%] sm:w-full mx-auto bg-[#0A0A0A] rounded-[32px] p-8 sm:p-10 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] border border-white/10 flex flex-col items-center transform transition-transform">
-            <div className="inline-flex flex-col items-center justify-center gap-1 mb-10">
-              <span className="text-3xl">🔥</span>
-              <span className="text-slate-400 font-black uppercase tracking-widest text-[12px] sm:text-[14px]">Provas Reais e Resultados</span>
+        {/* Stats Card — colado no mockup com margem negativa */}
+        <div className="-mt-10 sm:-mt-16 max-w-7xl mx-auto px-4 relative z-30">
+          <div className="w-full mx-auto bg-[#0A0A0A] rounded-[24px] sm:rounded-[32px] px-4 py-5 sm:p-10 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] border border-white/10 transform transition-transform">
+
+            {/* Header compacto */}
+            <div className="flex items-center justify-center gap-2 mb-5 sm:mb-10">
+              <span className="text-xl sm:text-3xl">🔥</span>
+              <span className="text-slate-400 font-black uppercase tracking-widest text-[10px] sm:text-[14px]">Provas Reais e Resultados</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 sm:gap-6 divide-y sm:divide-y-0 sm:divide-x divide-white/10 w-full text-center">
+            {/* Grid sempre 3 colunas */}
+            <div className="grid grid-cols-3 divide-x divide-white/10 w-full text-center">
               
               {/* Usuários */}
-              <div className="flex flex-col items-center justify-center pt-8 sm:pt-0">
-                <div className="w-14 h-14 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500 mb-4 hover:scale-110 transition-transform">
-                  <Users className="w-7 h-7" />
+              <div className="flex flex-col items-center justify-center px-2 sm:px-6">
+                <div className="w-8 h-8 sm:w-14 sm:h-14 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500 mb-2 sm:mb-4">
+                  <Users className="w-4 h-4 sm:w-7 sm:h-7" />
                 </div>
-                <div className="text-[48px] sm:text-[56px] font-black text-emerald-400 tracking-tighter leading-none mb-2 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+                <div className="text-[22px] sm:text-[56px] font-black text-emerald-400 tracking-tighter leading-none mb-1 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
                   +<AnimatedCounter value={175} suffix="mil" />
                 </div>
-                <p className="font-bold text-slate-300 text-[15px]">Usuários</p>
+                <p className="font-bold text-slate-400 text-[9px] sm:text-[15px] uppercase tracking-wide">Usuários</p>
               </div>
 
               {/* Kg Perdidos */}
-              <div className="flex flex-col items-center justify-center pt-8 sm:pt-0">
-                <div className="w-14 h-14 bg-orange-500/20 rounded-full flex items-center justify-center text-orange-500 mb-4 hover:scale-110 transition-transform">
-                  <TrendingDown className="w-7 h-7" />
+              <div className="flex flex-col items-center justify-center px-2 sm:px-6">
+                <div className="w-8 h-8 sm:w-14 sm:h-14 bg-orange-500/20 rounded-full flex items-center justify-center text-orange-500 mb-2 sm:mb-4">
+                  <TrendingDown className="w-4 h-4 sm:w-7 sm:h-7" />
                 </div>
-                <div className="text-[48px] sm:text-[56px] font-black text-orange-400 tracking-tighter leading-none mb-2 drop-shadow-[0_0_15px_rgba(251,146,60,0.3)]">
+                <div className="text-[22px] sm:text-[56px] font-black text-orange-400 tracking-tighter leading-none mb-1 drop-shadow-[0_0_15px_rgba(251,146,60,0.3)]">
                   +<AnimatedCounter value={714} suffix="kg" />
                 </div>
-                <p className="font-bold text-slate-300 text-[15px]">Gordura Derretida</p>
+                <p className="font-bold text-slate-400 text-[9px] sm:text-[15px] uppercase tracking-wide">Gordura Derretida</p>
               </div>
 
               {/* Receitas */}
-              <div className="flex flex-col items-center justify-center pt-8 sm:pt-0">
-                <div className="w-14 h-14 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500 mb-4 hover:scale-110 transition-transform">
-                  <Utensils className="w-7 h-7" />
+              <div className="flex flex-col items-center justify-center px-2 sm:px-6">
+                <div className="w-8 h-8 sm:w-14 sm:h-14 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500 mb-2 sm:mb-4">
+                  <Utensils className="w-4 h-4 sm:w-7 sm:h-7" />
                 </div>
-                <div className="text-[48px] sm:text-[56px] font-black text-emerald-400 tracking-tighter leading-none mb-2 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+                <div className="text-[22px] sm:text-[56px] font-black text-emerald-400 tracking-tighter leading-none mb-1 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
                   +<AnimatedCounter value={3} suffix="mil" />
                 </div>
-                <p className="font-bold text-slate-300 text-[15px]">Refeições Inteligentes</p>
+                <p className="font-bold text-slate-400 text-[9px] sm:text-[15px] uppercase tracking-wide">Receitas</p>
               </div>
 
             </div>
@@ -245,13 +248,11 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto grid sm:grid-cols-2 gap-12 sm:gap-20 items-center">
           <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
             <PhoneMockup dark>
-              <div className="w-full h-full flex items-center justify-center p-4">
-                <div className="w-full px-6 py-10 rounded-3xl bg-red-950/20 border border-red-500/20 flex flex-col items-center justify-center text-center relative shadow-2xl shadow-black">
-                  <RefreshCcw className="w-12 h-12 text-red-500 mb-4 animate-spin-slow" />
-                  <p className="font-bold text-red-400">Dieta Restritiva</p>
-                  <p className="text-sm text-red-300/60 font-medium">Você desiste no 3º dia.</p>
-                </div>
-              </div>
+              <img
+                src="/mockup-dieta-restritiva.png"
+                alt="Dieta Restritiva"
+                className="w-full h-full object-cover object-center absolute inset-0 z-0 rounded-[32px]"
+              />
             </PhoneMockup>
           </motion.div>
           <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="space-y-6 text-center sm:text-left">
@@ -344,7 +345,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto grid md:grid-cols-[4fr_5fr] gap-12 sm:gap-20 items-center relative z-10">
           <div className="w-full aspect-[4/5] bg-[#111] rounded-[36px] overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] border border-white/10 flex items-center justify-center relative translate-y-0 group hover:-translate-y-2 transition-transform duration-700">
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
-            <img src="/nutri_especialista_1774677887914.png" alt="Dra. Especialista" className="w-full h-full object-cover object-top opacity-100" />
+            <img src="/dra.png" alt="Dra. Especialista" className="w-full h-full object-cover object-top opacity-100" />
             <div className="absolute bottom-6 left-6 z-20">
               <div className="flex items-center gap-2 mb-2">
                 <ShieldCheck className="w-5 h-5 text-emerald-400" />
