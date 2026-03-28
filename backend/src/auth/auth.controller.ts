@@ -26,6 +26,15 @@ export class AuthController {
     return this.authService.verifyMagicLink(token);
   }
 
+  // POST /auth/demo-login BYPASS TEMPORÁRIO PARA GRAVAÇÃO DE VÍDEOS
+  @Post('demo-login')
+  async demoLogin(@Body('email') email: string) {
+    if (!email || !email.includes('@')) {
+      throw new BadRequestException('Email inválido.');
+    }
+    return this.authService.demoLogin(email.toLowerCase().trim());
+  }
+
   // GET /auth/me
   // Valida o token JWT e retorna o status do usuario
   @UseGuards(JwtAuthGuard)

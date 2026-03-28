@@ -22,7 +22,7 @@ export default function LoginPage() {
 
     try {
       const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://app-fit-backend.onrender.com').replace(/\/$/, '');
-      const res = await fetch(`${baseUrl}/auth/magic-link`, {
+      const res = await fetch(`${baseUrl}/auth/demo-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,10 +35,13 @@ export default function LoginPage() {
         throw new Error(errorData.message || 'Erro ao processar sua solicitação.');
       }
 
-      setSuccess(true);
+      const data = await res.json();
+      localStorage.setItem('seca_token', data.accessToken);
+      
+      // FORÇAR REDIRECIONAMENTO IMEDIATO
+      window.location.href = '/dashboard';
     } catch (err: any) {
       setError(err.message || 'Houve um erro ao enviar o link mágico.');
-    } finally {
       setLoading(false);
     }
   };

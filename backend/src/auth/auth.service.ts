@@ -69,4 +69,18 @@ export class AuthService {
 
     return { accessToken };
   }
+
+  // BYPASS TEMPORÁRIO PARA GRAVAÇÃO DE VÍDEOS
+  async demoLogin(email: string): Promise<{ accessToken: string }> {
+    const user = await this.userService.createOrUpdateFromKiwify({
+      email,
+      name: email.split('@')[0],
+      kiwifyOrderId: `demo-${Date.now()}`,
+    });
+
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = this.jwtService.sign(payload);
+
+    return { accessToken };
+  }
 }
