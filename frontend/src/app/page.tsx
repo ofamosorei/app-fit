@@ -102,7 +102,7 @@ export default function LandingPage() {
             Um aplicativo que cuida da sua alimentação e te ajuda a desinchar com <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">apoio de nutricionista</span>
           </h1>
           <p className="text-lg sm:text-[22px] text-slate-500 font-medium max-w-3xl mx-auto leading-snug">
-            O <strong className="text-slate-900">SECA APP</strong> assume o "trabalho sujo" de analisar sua comida por foto e calcular tudo no piloto automático para você voltar a ter resultados rápidos e práticos em sua vida.
+            Cardápios prontos, chás seca barriga, sucos detox e cálculo de calorias por foto, tudo com suporte e comunidade de alunos no WhatsApp.
           </p>
           <div className="pt-6 pb-6 w-full flex flex-col items-center">
             {primaryBtn("QUERO PERDER 10KG AGORA")}
