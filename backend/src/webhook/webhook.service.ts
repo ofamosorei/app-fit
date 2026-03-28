@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { UserService } from '../user/user.service';
+import { AuthService } from '../auth/auth.service';
 
 interface KiwifyPayload {
   event: string;
@@ -17,7 +18,10 @@ interface KiwifyPayload {
 export class WebhookService {
   private readonly logger = new Logger(WebhookService.name);
 
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {}
 
   async handleKiwify(payload: KiwifyPayload): Promise<{ received: boolean }> {
     const event = payload?.event;
@@ -48,6 +52,14 @@ export class WebhookService {
     // 4. Criar ou atualizar usuário com acesso liberado
     const user = await this.userService.createOrUpdateFromKiwify({ email, name, kiwifyOrderId: orderId });
     this.logger.log(`[Kiwify] Acesso liberado ✅ | email=${user.email} | orderId=${orderId}`);
+
+    // 5. Disparar email de boas-vindas com Magic Link
+    try {
+      await this.authService.sendMagicLink(user.email);
+      this.logger.log(`[Kiwify] Email de acesso enviado com sucesso para ${user.email}`);
+    } catch (error) {
+      this.logger.error(`[Kiwify] Erro ao enviar email para ${user.email}`, error);
+    }
 
     return { received: true };
   }

@@ -20,6 +20,6 @@ import { UserModule } from '../user/user.module';
   ],
   controllers: [AuthController],
   providers: [AuthService, MailService],
-  exports: [JwtModule], // exporta JwtModule para usar nos Guards depois
+  exports: [JwtModule, AuthService], // exporta JwtModule para usar nos Guards e AuthService para uso no Webhook
 })
 export class AuthModule {}

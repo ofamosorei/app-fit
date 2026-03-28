@@ -60,7 +60,7 @@ const AnimatedCounter = ({ value, suffix = "" }: { value: number, suffix?: strin
 
 // Reusable CSS Phone component
 const PhoneMockup = ({ children, dark = false }: { children?: ReactNode, dark?: boolean }) => (
-  <div className={`relative mx-auto w-[310px] h-[600px] sm:w-[380px] sm:h-[720px] rounded-[40px] sm:rounded-[48px] border-[8px] sm:border-[10px] ${dark ? 'border-[#222] bg-[#111]' : 'border-slate-200 bg-white'} shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col`}>
+  <div className={`relative mx-auto w-[300px] h-[580px] sm:w-[380px] sm:h-[720px] rounded-[40px] sm:rounded-[48px] border-[8px] sm:border-[10px] ${dark ? 'border-[#222] bg-[#111]' : 'border-slate-200 bg-white'} shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col`}>
     <div className={`absolute top-0 inset-x-0 h-6 sm:h-7 flex justify-center z-20`}>
       <div className={`w-32 sm:w-40 h-6 sm:h-7 ${dark ? 'bg-[#222]' : 'bg-slate-200'} rounded-b-2xl sm:rounded-b-3xl`}></div>
     </div>
@@ -147,9 +147,9 @@ export default function LandingPage() {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.4 }}
-            className="relative w-full h-[600px] sm:h-[720px] flex items-center justify-center mt-10 md:mt-0"
+            className="relative w-full h-[580px] sm:h-[760px] flex items-center justify-center mt-6 md:mt-0"
           >
-            <div className="relative z-10 transform scale-95 sm:scale-100 hover:scale-[1.03] transition-transform duration-500 origin-bottom">
+            <div className="relative z-10 transform scale-[1.05] sm:scale-100 hover:scale-[1.08] sm:hover:scale-[1.03] transition-transform duration-500 origin-bottom">
               <PhoneMockup>
                 {/* Vídeo/Imagem mostrando o App em uso logo de cara */}
                 <img
@@ -190,50 +190,35 @@ export default function LandingPage() {
           </motion.div>
         </div>
 
-        {/* Stats Card — colado no mockup com margem negativa */}
-        <div className="-mt-10 sm:-mt-16 max-w-7xl mx-auto px-4 relative z-30">
-          <div className="w-full mx-auto bg-[#0A0A0A] rounded-[24px] sm:rounded-[32px] px-4 py-5 sm:p-10 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] border border-white/10 transform transition-transform">
-
-            {/* Header compacto */}
-            <div className="flex items-center justify-center gap-2 mb-5 sm:mb-10">
-              <span className="text-xl sm:text-3xl">🔥</span>
-              <span className="text-slate-400 font-black uppercase tracking-widest text-[10px] sm:text-[14px]">Provas Reais e Resultados</span>
-            </div>
+        {/* Stats Card — tira slim abaixo do mockup */}
+        <div className="mt-4 sm:-mt-10 max-w-3xl mx-auto px-4 relative z-30">
+          <div className="w-full mx-auto bg-[#0A0A0A] rounded-[18px] sm:rounded-[28px] px-4 py-3 sm:py-6 sm:px-10 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.4)] border border-white/10">
 
             {/* Grid sempre 3 colunas */}
             <div className="grid grid-cols-3 divide-x divide-white/10 w-full text-center">
-              
+
               {/* Usuários */}
-              <div className="flex flex-col items-center justify-center px-2 sm:px-6">
-                <div className="w-8 h-8 sm:w-14 sm:h-14 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500 mb-2 sm:mb-4">
-                  <Users className="w-4 h-4 sm:w-7 sm:h-7" />
-                </div>
-                <div className="text-[22px] sm:text-[56px] font-black text-emerald-400 tracking-tighter leading-none mb-1 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+              <div className="flex flex-col items-center justify-center px-2 sm:px-6 py-1 sm:py-0">
+                <div className="text-[20px] sm:text-[40px] font-black text-emerald-400 tracking-tighter leading-none drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">
                   +<AnimatedCounter value={175} suffix="mil" />
                 </div>
-                <p className="font-bold text-slate-400 text-[9px] sm:text-[15px] uppercase tracking-wide">Usuários</p>
+                <p className="font-bold text-slate-500 text-[9px] sm:text-[13px] uppercase tracking-wide mt-0.5">Usuários</p>
               </div>
 
               {/* Kg Perdidos */}
-              <div className="flex flex-col items-center justify-center px-2 sm:px-6">
-                <div className="w-8 h-8 sm:w-14 sm:h-14 bg-orange-500/20 rounded-full flex items-center justify-center text-orange-500 mb-2 sm:mb-4">
-                  <TrendingDown className="w-4 h-4 sm:w-7 sm:h-7" />
-                </div>
-                <div className="text-[22px] sm:text-[56px] font-black text-orange-400 tracking-tighter leading-none mb-1 drop-shadow-[0_0_15px_rgba(251,146,60,0.3)]">
+              <div className="flex flex-col items-center justify-center px-2 sm:px-6 py-1 sm:py-0">
+                <div className="text-[20px] sm:text-[40px] font-black text-orange-400 tracking-tighter leading-none drop-shadow-[0_0_10px_rgba(251,146,60,0.3)]">
                   +<AnimatedCounter value={714} suffix="kg" />
                 </div>
-                <p className="font-bold text-slate-400 text-[9px] sm:text-[15px] uppercase tracking-wide">Gordura Derretida</p>
+                <p className="font-bold text-slate-500 text-[9px] sm:text-[13px] uppercase tracking-wide mt-0.5">Gordura Derretida</p>
               </div>
 
               {/* Receitas */}
-              <div className="flex flex-col items-center justify-center px-2 sm:px-6">
-                <div className="w-8 h-8 sm:w-14 sm:h-14 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500 mb-2 sm:mb-4">
-                  <Utensils className="w-4 h-4 sm:w-7 sm:h-7" />
-                </div>
-                <div className="text-[22px] sm:text-[56px] font-black text-emerald-400 tracking-tighter leading-none mb-1 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+              <div className="flex flex-col items-center justify-center px-2 sm:px-6 py-1 sm:py-0">
+                <div className="text-[20px] sm:text-[40px] font-black text-emerald-400 tracking-tighter leading-none drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">
                   +<AnimatedCounter value={3} suffix="mil" />
                 </div>
-                <p className="font-bold text-slate-400 text-[9px] sm:text-[15px] uppercase tracking-wide">Receitas</p>
+                <p className="font-bold text-slate-500 text-[9px] sm:text-[13px] uppercase tracking-wide mt-0.5">Receitas</p>
               </div>
 
             </div>
