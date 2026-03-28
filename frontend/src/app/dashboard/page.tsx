@@ -6,6 +6,7 @@ import { Calendar, Droplets, Target, Flame, ArrowRight, Activity, Plus } from 'l
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiFetch } from '@/lib/api';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -28,20 +29,12 @@ export default function Dashboard() {
     setLoadingPlan(true);
     setErrorPlan(null);
 
-    const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://app-fit-backend.onrender.com').replace(/\/$/, '');
-
     try {
-      const res = await fetch(apiUrl + '/ai/generate-plan', {
+      const data = await apiFetch('/ai/generate-plan', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ weight, height, age, sex, activityLevel, comorbidities, medications, goal })
       });
 
-      if (!res.ok) {
-        throw new Error('Servidor ainda está ligando (Render). Aguarde!');
-      }
-
-      const data = await res.json();
       const hydratedWeeklyPlan = data.weeklyPlan?.map((day: any) => ({
         ...day,
         meals: day.meals.map((m: any) => ({ ...m, completed: false }))

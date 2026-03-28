@@ -59,42 +59,24 @@ let AiService = class AiService {
         const goalLabel = goal === 'fast' ? 'emagrecimento rápido' : goal === 'moderate' ? 'perda moderada' : 'manutenção de peso';
         try {
             const prompt = `Você é uma nutricionista clínica e funcional especialista em emagrecimento.
-Crie um PLANO ALIMENTAR SEMANAL (7 DIAS, de Segunda a Domingo) para um paciente com as seguintes características:
+Baseado no paciente: ${weight}kg, ${height}cm, ${age} anos, Sexo ${sex === 'male' ? 'Masculino' : 'Feminino'}. Nível: ${activityLevel}. Objetivo: ${goalLabel}. Meta calórica de ${caloricTarget} kcal diárias (Déficit incluído).
 
-- Peso: ${weight}kg | Altura: ${height}cm | Idade: ${age} anos | Sexo: ${sex === 'male' ? 'Masculino' : 'Feminino'}
-- Nível de Atividade: ${activityLevel === 'intense' ? 'Intenso (Atleta/Crossfit)' : activityLevel === 'moderate' ? 'Moderado (3 a 5x por semana)' : activityLevel === 'light' ? 'Leve (1 a 3x por semana)' : 'Sedentário (Nenhuma)'}
-- Objetivo: ${goalLabel}
-- META CALÓRICA DO DIA: APROXIMADAMENTE ${caloricTarget} kcal (TDEE realizado com fator de atividade: ${tdee} kcal${goal !== 'maintenance' ? `, déficit de ${tdee - caloricTarget} kcal` : ''}).
+CRIE 3 PLANOS NUTRICIONAIS BASE (Plano A, Plano B, Plano C). O sistema no backend irá ler esses 3 planos e rotacioná-los automaticamente para preencher a semana inteira do paciente, então FOQUE apenas em criar 3 dias excelentes e variados.
+Regras OBRIGATÓRIAS:
+1. USE APENAS ALIMENTOS SIMPLES, FÁCEIS DE ENCONTRAR E BARATOS NO BRASIL (Ovos, frango, patinho moído, arroz, feijão, aveia, frutas básicas, etc). Nada caro ou importado.
+2. Pratos focados em ${comorbidities || 'saúde'} e adaptados para ${medications || 'sem medicamentos especiais'}.
+3. NÃO adicione chás nem suco detox no menu. (Nós do sistema faremos a adição nas datas certas).
+4. Cada plano base deve ter APENAS as 4 refeições principais (Café da Manhã, Almoço, Lanche da Tarde, Jantar).
 
-INFORMAÇÕES CLÍNICAS OBRIGATÓRIAS DE PROTEÇÃO:
-- Condições de Saúde (Comorbidades): ${comorbidities || 'Nenhuma informada'}
-- Uso de Medicamentos: ${medications || 'Nenhum informado'}
-
-REGRAS:
-1. ADAPTAÇÃO CLÍNICA: Se houver relato de Diabetes, reduza muito carboidratos simples. Hipertensão exige redução de sódio/industrializados. Se houver intolerância declarada, faça substituições devidas.
-2. Você DEVE gerar EXATAMENTE 7 DIAS de cardápio.
-3. Use alimentos simples, comuns e baratos no Brasil.
-4. Para os dias de dieta (1=Segunda, 2=Terça, 3=Quarta, 4=Quinta, 5=Sexta):
-   - OBRIGATÓRIO: Chá seca barriga deve existir em todos os dias de Segunda a Sexta, posicionado ANTES DO ALMOÇO ou ANTES DO JANTAR.
-   - OBRIGATÓRIO: Suco Detox DEVE existir *obrigatoriamente* na Segunda(1), Quarta(3) e Sexta(5), posicionado de manhã, EM JEJUM (antes do café da manhã).
-5. Sábado (6) e Domingo (0): Não há obrigação de Chá seca barriga ou Suco Detox (a menos que a caloria permita, mas preferencialmente não use, para deixar a dieta diferente no final de semana).
-6. Refeições variadas a cada dia mas que sejam de fácil preparo (ex: ovos, frango, carne moída, salada, frutas).
-
-Formato ESTRITO esperado de saída JSON:
+Formato ESTRITO JSON:
 {
   "waterTarget": ${weight * 35},
-  "weeklyPlan": [
+  "basePlans": [
     {
-      "dayOfWeek": 0,
-      "dayName": "Domingo",
       "meals": [ { "time": "08:00", "title": "Café da manhã", "description": "...", "completed": false } ]
     },
-    { "dayOfWeek": 1, "dayName": "Segunda-feira", "meals": [...] },
-    { "dayOfWeek": 2, "dayName": "Terça-feira", "meals": [...] },
-    { "dayOfWeek": 3, "dayName": "Quarta-feira", "meals": [...] },
-    { "dayOfWeek": 4, "dayName": "Quinta-feira", "meals": [...] },
-    { "dayOfWeek": 5, "dayName": "Sexta-feira", "meals": [...] },
-    { "dayOfWeek": 6, "dayName": "Sábado", "meals": [...] }
+    { "meals": [...] },
+    { "meals": [...] }
   ]
 }`;
             const response = await this.openai.chat.completions.create({
@@ -102,7 +84,52 @@ Formato ESTRITO esperado de saída JSON:
                 messages: [{ role: 'user', content: prompt }],
                 response_format: { type: "json_object" }
             });
-            return JSON.parse(response.choices[0].message.content || '{}');
+            const responseText = response.choices[0].message.content || '{}';
+            const parsedData = JSON.parse(responseText);
+            const weeklyPlan = [];
+            const basePlans = parsedData.basePlans || [];
+            if (basePlans.length === 0)
+                throw new Error('Falha ao gerar base plans');
+            for (let i = 0; i < 7; i++) {
+                const baseIndex = i % basePlans.length;
+                const clonedMeals = JSON.parse(JSON.stringify(basePlans[baseIndex].meals));
+                if ([1, 3, 5].includes(i)) {
+                    clonedMeals.unshift({
+                        type: "Desjejum",
+                        time: "06:30",
+                        name: "Suco Detox Seca Barriga",
+                        description: "1 folha de couve, 1/2 maçã, 1 limão espremido e 200ml de água (Bater e beber em jejum)",
+                        calories: 60,
+                        protein: 2,
+                        carbs: 14,
+                        fat: 0,
+                        completed: false
+                    });
+                }
+                if ([1, 2, 3, 4].includes(i)) {
+                    const almoçoIndex = clonedMeals.findIndex((m) => m.title?.toLowerCase().includes('almoço') || m.type?.toLowerCase().includes('almoço')) || 1;
+                    const finalInsertIndex = almoçoIndex > -1 ? almoçoIndex : 1;
+                    clonedMeals.splice(finalInsertIndex, 0, {
+                        type: "Lanche",
+                        time: "11:30",
+                        name: "Chá Termogênico Padrão",
+                        description: "1 xícara de Chá Verde, Hibisco ou Cavalinha sem açúcar (Para acelerar o metabolismo)",
+                        calories: 5,
+                        protein: 0,
+                        carbs: 1,
+                        fat: 0,
+                        completed: false
+                    });
+                }
+                weeklyPlan.push({
+                    dayOfWeek: i,
+                    meals: clonedMeals
+                });
+            }
+            return {
+                waterTarget: parsedData.waterTarget || weight * 35,
+                weeklyPlan
+            };
         }
         catch (error) {
             console.error(error);

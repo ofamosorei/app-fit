@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Camera, ImageIcon, Flame, Drumstick, Wheat, Activity, Loader2, RefreshCcw, CheckCircle2 } from 'lucide-react';
+import { apiFetch } from '@/lib/api';
 
 interface Ingredient {
   name: string;
@@ -67,15 +68,14 @@ export default function ScannerPage() {
     setLoading(true);
     setResult(null);
     try {
-      const res = await fetch((process.env.NEXT_PUBLIC_API_URL || 'https://app-fit-backend.onrender.com').replace(/\/$/, '') + '/ai/analyze-meal', {
+      const data = await apiFetch('/ai/analyze-meal', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: base64 })
       });
-      const data = await res.json();
       setResult(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      alert(err.message || 'Houve um erro ao analisar a imagem.');
     } finally {
       setLoading(false);
     }

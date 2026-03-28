@@ -5,7 +5,25 @@ export declare class AiService {
     constructor(configService: ConfigService);
     private calculateTDEE;
     private getCaloricTarget;
-    generatePlan(weight: number, height: number, age: number, sex: 'male' | 'female', activityLevel: string, comorbidities: string, medications: string, goal: string): Promise<any>;
+    generatePlan(weight: number, height: number, age: number, sex: 'male' | 'female', activityLevel: string, comorbidities: string, medications: string, goal: string): Promise<{
+        waterTarget: number;
+        weeklyPlan: {
+            dayOfWeek: number;
+            dayName: string;
+            meals: {
+                time: string;
+                title: string;
+                description: string;
+                completed: boolean;
+            }[];
+        }[];
+    } | {
+        waterTarget: any;
+        weeklyPlan: {
+            dayOfWeek: number;
+            meals: any;
+        }[];
+    }>;
     analyzeMeal(imageBase64: string): Promise<{
         name: any;
         calories: number;
