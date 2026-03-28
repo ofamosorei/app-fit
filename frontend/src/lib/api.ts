@@ -1,5 +1,5 @@
 export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
-  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://app-fit-backend.onrender.com').replace(/\/$/, '');
+  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.secaapp.com').replace(/\/$/, '');
   const token = typeof window !== 'undefined' ? localStorage.getItem('@appfit:token') : null;
 
   const headers = new Headers(options.headers || {});

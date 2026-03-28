@@ -21,7 +21,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://app-fit-backend.onrender.com').replace(/\/$/, '');
+      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.secaapp.com').replace(/\/$/, '');
       const res = await fetch(`${baseUrl}/auth/demo-login`, {
         method: 'POST',
         headers: {

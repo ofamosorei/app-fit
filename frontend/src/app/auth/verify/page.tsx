@@ -22,7 +22,7 @@ export default function VerifyTokenPage() {
 
     const verifyToken = async () => {
       try {
-        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://app-fit-backend.onrender.com').replace(/\/$/, '');
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.secaapp.com').replace(/\/$/, '');
         const res = await fetch(`${baseUrl}/auth/verify?token=${token}`);
         
         if (!res.ok) {

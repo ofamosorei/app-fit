@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const storedToken = localStorage.getItem('@appfit:token');
       if (storedToken) {
         try {
-          const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://app-fit-backend.onrender.com').replace(/\/$/, '');
+          const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.secaapp.com').replace(/\/$/, '');
           const res = await fetch(`${baseUrl}/auth/me`, {
             headers: { 'Authorization': `Bearer ${storedToken}` }
           });
