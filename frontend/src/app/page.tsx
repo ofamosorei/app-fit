@@ -96,7 +96,7 @@ export default function LandingPage() {
         
         <div className="relative z-10 max-w-4xl mx-auto space-y-6 flex flex-col items-center">
           <div className="inline-flex items-center gap-2 bg-red-50 text-red-600 px-4 py-1.5 rounded-full font-bold text-xs tracking-widest uppercase border border-red-100 mb-2">
-            <Lock className="w-3.5 h-3.5" /> MÉTODO CLÍNICO VALIDADO PARA LEIGOS
+            <Lock className="w-3.5 h-3.5" /> está pronta para transformar seu corpo e sua saúde?
           </div>
           <h1 className="text-[34px] sm:text-[58px] font-black leading-[1.1] tracking-tight text-slate-900 drop-shadow-sm">
             Acesso a um protocolo completo para desinchar e <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">perder até 10 kg em 30 dias</span> com alimentação estratégica e receitas detox
