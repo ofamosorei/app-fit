@@ -5,11 +5,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useProtocol } from '@/context/ProtocolContext';
+import { useAuth } from '@/context/AuthContext';
+import { apiFetch } from '@/lib/api';
 
 export default function Onboarding() {
   const router = useRouter();
   const { setWeight, setHeight, setAge, setSex, setActivityLevel, setComorbidities, setMedications, setGoal, setTargetWeight } = useProtocol();
+  const { isAuthenticated } = useAuth();
   const [step, setStep] = useState(1);
+  const [isSaving, setIsSaving] = useState(false);
   
   const [localWeight, setLocalWeight] = useState(70);
   const [localHeight, setLocalHeight] = useState(170);
@@ -20,12 +24,19 @@ export default function Onboarding() {
   const [localMedications, setLocalMedications] = useState('');
   const [localGoal, setLocalGoal] = useState<'fast'|'moderate'|'maintenance'>('fast');
   const [localTarget, setLocalTarget] = useState(65);
+  // Novos campos premium
+  const [localAllergies, setLocalAllergies] = useState('');
+  const [localDislikedFoods, setLocalDislikedFoods] = useState('');
+  const [localMealsPerDay, setLocalMealsPerDay] = useState<'3'|'5'>('5');
 
-  const TOTAL_STEPS = 9;
+  const TOTAL_STEPS = 12;
 
-  const nextStep = () => {
-    if (step < TOTAL_STEPS) setStep(step + 1);
-    else {
+  const nextStep = async () => {
+    if (step < TOTAL_STEPS) {
+      setStep(step + 1);
+    } else {
+      setIsSaving(true);
+      // Salva no contexto local pré-compra (caso ainda não tenha pago)
       setWeight(localWeight);
       setHeight(localHeight);
       setAge(localAge);
@@ -35,7 +46,34 @@ export default function Onboarding() {
       setMedications(localMedications.trim() === '' ? 'Nenhum' : localMedications);
       setGoal(localGoal);
       setTargetWeight(localTarget);
-      router.push('/paywall');
+
+      // Se já está autenticado (veio pelo Magic Link), salva direto no banco e vai pro app
+      if (isAuthenticated) {
+        try {
+          await apiFetch('/auth/me/profile', {
+            method: 'POST',
+            body: JSON.stringify({
+              weight: localWeight, height: localHeight, age: localAge, sex: localSex,
+              activityLevel: localActivity, comorbidities: localComorbidities,
+              medications: localMedications, goal: localGoal, targetWeight: localTarget,
+              allergies: localAllergies, dislikedFoods: localDislikedFoods, mealsPerDay: localMealsPerDay
+            })
+          });
+          
+          window.dispatchEvent(new Event('appfit:profile-updated'));
+          
+          // A geração do plano vai ocorrer no Dashboard agora com os dados completos!
+          router.push('/dashboard');
+        } catch (error) {
+          console.error("Erro ao salvar perfil:", error);
+          alert('Erro ao salvar dados. Tente novamente.');
+        } finally {
+          setIsSaving(false);
+        }
+      } else {
+        // Fluxo de primeiro acesso pré-Kiwify
+        router.push('/paywall');
+      }
     }
   };
 
@@ -253,16 +291,78 @@ export default function Onboarding() {
               </div>
             </motion.div>
           )}
+
+          {/* Step 10 – Alergias */}
+          {step === 10 && (
+            <motion.div key="10" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex-1 flex flex-col justify-center gap-6 absolute inset-0">
+              <div className="space-y-2 text-center mt-4 mb-4">
+                <h2 className="text-[32px] font-black text-slate-900 tracking-tight leading-tight">Alergias ou Intolerâncias</h2>
+                <p className="text-slate-500 font-medium">Glúten, lactose, frutos do mar? A IA usará isso para adaptar sua dieta.</p>
+              </div>
+              <div className="flex flex-col flex-1 pb-10">
+                <textarea 
+                  value={localAllergies}
+                  onChange={(e) => setLocalAllergies(e.target.value)}
+                  placeholder="Se sim, descreva. Caso contrário, deixe em branco."
+                  className="w-full flex-1 min-h-[150px] max-h-[250px] resize-none bg-white border border-slate-200 rounded-[2rem] p-6 text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-lg shadow-inner placeholder:text-slate-300"
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 11 – Alimentos Indesejados */}
+          {step === 11 && (
+            <motion.div key="11" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex-1 flex flex-col justify-center gap-6 absolute inset-0">
+              <div className="space-y-2 text-center mt-4 mb-4">
+                <h2 className="text-[30px] font-black text-slate-900 tracking-tight leading-tight">Alimentos que não gosta</h2>
+                <p className="text-slate-500 font-medium">Não suporta fígado? Odeia ovo? Diga o que deve ser evitado a todo custo.</p>
+              </div>
+              <div className="flex flex-col flex-1 pb-10">
+                <textarea 
+                  value={localDislikedFoods}
+                  onChange={(e) => setLocalDislikedFoods(e.target.value)}
+                  placeholder="Se sim, digite os nomes. Caso contrário, deixe em branco."
+                  className="w-full flex-1 min-h-[150px] max-h-[250px] resize-none bg-white border border-slate-200 rounded-[2rem] p-6 text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-lg shadow-inner placeholder:text-slate-300"
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 12 – Número de Refeições */}
+          {step === 12 && (
+            <motion.div key="12" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex-1 flex flex-col justify-center gap-6 absolute inset-0">
+              <div className="space-y-2 text-center mt-2 mb-4">
+                <h2 className="text-[32px] font-black text-slate-900 tracking-tight leading-tight">Organização do Dia</h2>
+                <p className="text-slate-500 font-medium">Quantas refeições prefere fazer?</p>
+              </div>
+              <div className="flex flex-col gap-4">
+                {[
+                  { id: '3', label: 'Apenas 3 Maiores', desc: 'Café da manhã, Almoço e Jantar.' },
+                  { id: '5', label: '5 Fracionadas', desc: 'Café, Lanche, Almoço, Lanche da Tarde e Jantar.' }
+                ].map(opt => (
+                  <button
+                    key={opt.id}
+                    onClick={() => setLocalMealsPerDay(opt.id as '3' | '5')}
+                    className={`p-6 rounded-[2rem] border-2 text-left transition-all shadow-[0_4px_20px_rgb(0,0,0,0.02)] active:scale-[0.98] ${localMealsPerDay === opt.id ? 'bg-emerald-50 border-emerald-500 ring-4 ring-emerald-500/10' : 'bg-white border-slate-100 hover:border-emerald-200'}`}
+                  >
+                    <h3 className={`font-black text-[17px] tracking-tight ${localMealsPerDay === opt.id ? 'text-emerald-600' : 'text-slate-800'}`}>{opt.label}</h3>
+                    <p className={`text-[13px] mt-1.5 font-medium leading-relaxed ${localMealsPerDay === opt.id ? 'text-emerald-600/70' : 'text-slate-500'}`}>{opt.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
 
       <div className="mt-auto pt-8 z-10 w-full bg-slate-50">
         <button 
           onClick={nextStep}
-          className="w-full relative flex items-center justify-center gap-3 py-4 sm:py-5 bg-emerald-500 text-white rounded-[2rem] font-black text-lg hover:bg-emerald-600 transition-all active:scale-[0.98] shadow-lg shadow-emerald-500/30"
+          disabled={isSaving}
+          className="w-full relative flex items-center justify-center gap-3 py-4 sm:py-5 bg-emerald-500 text-white rounded-[2rem] font-black text-lg hover:bg-emerald-600 transition-all active:scale-[0.98] shadow-lg shadow-emerald-500/30 disabled:opacity-70"
         >
-          {step === TOTAL_STEPS ? 'Gerar Meu Plano' : 'Continuar'}
-          <ChevronRight className="w-[22px] h-[22px] stroke-[2.5]" />
+          {isSaving ? 'Configurando IA...' : step === TOTAL_STEPS ? 'Salvar Meu Perfil' : 'Continuar'}
+          {!isSaving && <ChevronRight className="w-[22px] h-[22px] stroke-[2.5]" />}
         </button>
       </div>
 

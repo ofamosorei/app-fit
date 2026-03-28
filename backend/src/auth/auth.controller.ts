@@ -42,4 +42,14 @@ export class AuthController {
   getMe(@Request() req: any) {
     return req.user;
   }
+
+  // PUT /auth/me/profile
+  // Salva os dados de onboarding no perfil do usuário
+  @UseGuards(JwtAuthGuard)
+  @Post('me/profile')
+  async updateProfile(@Request() req: any, @Body() updateData: any) {
+    // Retira o plano do update direto por segurança, se quiser evitar sobreescrita
+    const { plan, ...safeData } = updateData;
+    return this.authService.updateUserProfile(req.user.id, safeData);
+  }
 }

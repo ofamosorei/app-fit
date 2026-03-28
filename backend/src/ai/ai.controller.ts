@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PaidAccessGuard } from '../auth/paid-access.guard';
 import { AiService } from './ai.service';
@@ -9,17 +9,8 @@ export class AiController {
   constructor(private readonly aiService: AiService) {}
 
   @Post('generate-plan')
-  async generatePlan(
-    @Body('weight') weight: number,
-    @Body('height') height: number,
-    @Body('age') age: number,
-    @Body('sex') sex: 'male' | 'female',
-    @Body('activityLevel') activityLevel: string,
-    @Body('comorbidities') comorbidities: string,
-    @Body('medications') medications: string,
-    @Body('goal') goal: string,
-  ) {
-    return this.aiService.generatePlan(weight, height, age, sex, activityLevel, comorbidities, medications, goal);
+  async generatePlan(@Request() req: any) {
+    return this.aiService.generatePlanForUser(req.user.id);
   }
 
   @Post('analyze-meal')

@@ -83,4 +83,12 @@ export class AuthService {
 
     return { accessToken };
   }
+
+  async updateUserProfile(userId: string, data: any): Promise<any> {
+    const user = await this.userService.updateProfile(userId, data);
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado.');
+    }
+    return { message: 'Perfil atualizado com sucesso', user };
+  }
 }

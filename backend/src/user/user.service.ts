@@ -56,4 +56,9 @@ export class UserService {
   isAccessActive(user: User): boolean {
     return user.hasPaid === true;
   }
+
+  async updateProfile(id: string, data: Partial<User>): Promise<User | null> {
+    await this.userRepo.update(id, data);
+    return this.findById(id);
+  }
 }

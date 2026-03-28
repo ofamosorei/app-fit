@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
+  user: any | null; // Novo campo
   login: (jwt: string) => void;
   logout: () => void;
 }
@@ -14,6 +15,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -27,14 +29,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           });
           
           if (res.ok) {
+            const userData = await res.json();
             setToken(storedToken);
+            setUser(userData);
           } else {
             localStorage.removeItem('@appfit:token');
             setToken(null);
+            setUser(null);
           }
         } catch {
-          // Em caso de falta de conexão com a internet, mantemos o token optimista 
-          // ou limpamos? Vamos manter até a primeira falha de API real.
+          // Em caso de alerta de rede
           setToken(storedToken);
         }
       }
@@ -44,23 +48,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     validateToken();
   }, []);
 
+  // Update user state globally after an onboarding
+  useEffect(() => {
+    // Escuta evento customizado de atualização de perfil para não precisar recarregar a página
+    const handleProfileUpdate = () => validateToken();
+    window.addEventListener('appfit:profile-updated', handleProfileUpdate);
+    return () => window.removeEventListener('appfit:profile-updated', handleProfileUpdate);
+    
+    function validateToken() {
+        const storedToken = localStorage.getItem('@appfit:token');
+        if (storedToken) {
+          const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.secaapp.com').replace(/\/$/, '');
+          fetch(`${baseUrl}/auth/me`, { headers: { 'Authorization': `Bearer ${storedToken}` } })
+            .then(res => res.ok ? res.json() : null)
+            .then(userData => { if (userData) setUser(userData); })
+            .catch(() => {});
+        }
+    }
+  }, []);
+
   const login = (jwt: string) => {
     localStorage.setItem('@appfit:token', jwt);
     setToken(jwt);
+    // Dispara validação pra carregar o User
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.secaapp.com').replace(/\/$/, '');
+    fetch(`${baseUrl}/auth/me`, { headers: { 'Authorization': `Bearer ${jwt}` } })
+      .then(res => res.ok ? res.json() : null)
+      .then(userData => { if (userData) setUser(userData); })
+      .catch(() => {});
   };
 
   const logout = () => {
     localStorage.removeItem('@appfit:token');
     setToken(null);
+    setUser(null);
   };
 
-  if (!isLoaded) {
-    // Previne flash de redirecionamento enquanto carrega o estado do lado do cliente
-    return null; 
-  }
+  if (!isLoaded) return null; 
 
   return (
-    <AuthContext.Provider value={{ token, isAuthenticated: !!token, login, logout }}>
+    <AuthContext.Provider value={{ token, isAuthenticated: !!token, user, login, logout }}>
       <AuthGuard>{children}</AuthGuard>
     </AuthContext.Provider>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useProtocol } from '@/context/ProtocolContext';
+import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
 import { Calendar, Droplets, Target, Flame, ArrowRight, Activity, Plus } from 'lucide-react';
 import Link from 'next/link';
@@ -10,19 +11,34 @@ import { apiFetch } from '@/lib/api';
 
 export default function Dashboard() {
   const router = useRouter();
-  const { weight, targetWeight, streak, waterConsumed, waterTarget, plan, setPlan, goal, height, age, sex, activityLevel, comorbidities, medications, addProgress, progress } = useProtocol();
+  const { user } = useAuth();
+  const { weight, targetWeight, streak, waterConsumed, waterTarget, plan, setPlan, goal, height, age, sex, activityLevel, comorbidities, medications, addProgress, progress, setWeight, setHeight, setAge, setSex, setActivityLevel, setComorbidities, setMedications, setGoal, setTargetWeight } = useProtocol();
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [errorPlan, setErrorPlan] = useState<string | null>(null);
   const fetchAttempted = useRef(false);
 
-  // Redirect to onboarding if profile is incomplete
+  // Sync Auth User Data into Protocol Context immediately if not present
   useEffect(() => {
-    if (weight && (!age || !sex || !activityLevel)) {
+    if (user) {
+      if (user.weight && !weight) setWeight(user.weight);
+      if (user.height && !height) setHeight(user.height);
+      if (user.age && !age) setAge(user.age);
+      if (user.sex && !sex) setSex(user.sex);
+      if (user.activityLevel && !activityLevel) setActivityLevel(user.activityLevel);
+      if (user.goal && !goal) setGoal(user.goal);
+      if (user.targetWeight && !targetWeight) setTargetWeight(user.targetWeight);
+      if (user.plan && !plan) setPlan(user.plan);
+    }
+  }, [user, weight, height, age, sex, activityLevel, goal, targetWeight, plan]);
+
+  // Redirect to onboarding if profile is incomplete (Checks user directly)
+  useEffect(() => {
+    if (user && (!user.weight || !user.age || !user.sex || !user.activityLevel || !user.goal)) {
       router.replace('/onboarding');
     }
-  }, [weight, age, sex, activityLevel, router]);
+  }, [user, router]);
 
-  // Auto-generate plan with backend if none exists or is stale
+  // Auto-generate plan with backend se o plano não existe e o Onboarding FOI preenchido
   const generateProtocol = async () => {
     if (fetchAttempted.current) return;
     fetchAttempted.current = true;
@@ -30,20 +46,18 @@ export default function Dashboard() {
     setErrorPlan(null);
 
     try {
-      const data = await apiFetch('/ai/generate-plan', {
-        method: 'POST',
-        body: JSON.stringify({ weight, height, age, sex, activityLevel, comorbidities, medications, goal })
-      });
+      // Nova versão: não precisa mandar JSON Body. A Auth valida via JWT e pega DB direto
+      const data = await apiFetch('/ai/generate-plan', { method: 'POST' });
 
+      // Adiciona flag "completed"
       const hydratedWeeklyPlan = data.weeklyPlan?.map((day: any) => ({
         ...day,
         meals: day.meals.map((m: any) => ({ ...m, completed: false }))
       })) || [];
       
-      setPlan({ waterTarget: data.waterTarget || (weight || 0) * 35, weeklyPlan: hydratedWeeklyPlan });
+      setPlan({ waterTarget: data.waterTarget || (user?.weight || 0) * 35, weeklyPlan: hydratedWeeklyPlan });
     } catch (err: any) {
       console.error("Erro ao gerar plano:", err);
-      // Exibe a mensagem de erro exata na tela para ajudar a debugar
       setErrorPlan(err.message || 'Erro desconhecido ao conectar no servidor.');
       fetchAttempted.current = false; // Allow retry
     } finally {
@@ -53,10 +67,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     const planIsStale = plan && !plan.weeklyPlan;
-    if ((!plan || planIsStale) && weight && height && goal && age && sex && activityLevel) {
+    
+    // Agora baseamos a checagem no "user" vindo da base
+    if ((!plan || planIsStale) && user?.weight && user?.goal && user?.age) {
       generateProtocol();
     }
-  }, [plan, weight, height, age, sex, activityLevel, comorbidities, medications, goal]);
+  }, [plan, user]);
 
   const todayDayOfWeek = new Date().getDay();
   const todaysPlan = plan?.weeklyPlan?.find(p => p.dayOfWeek === todayDayOfWeek);
