@@ -3,9 +3,15 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, ArrowRight, Loader2, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+  const { login } = useAuth();
+  const router = useRouter();
+  const [mode, setMode] = useState<'password' | 'magic'>('password');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -22,7 +28,7 @@ export default function LoginPage() {
 
     try {
       const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.secaapp.com').replace(/\/$/, '');
-      const res = await fetch(`${baseUrl}/auth/demo-login`, {
+      const res = await fetch(`${baseUrl}/auth/magic-link`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,13 +41,50 @@ export default function LoginPage() {
         throw new Error(errorData.message || 'Erro ao processar sua solicitação.');
       }
 
-      const data = await res.json();
-      localStorage.setItem('@appfit:token', data.accessToken);
-      
-      // FORÇAR REDIRECIONAMENTO IMEDIATO
-      window.location.href = '/dashboard';
+      await res.json();
+      setSuccess(true);
+      setLoading(false);
     } catch (err: any) {
       setError(err.message || 'Houve um erro ao enviar o link mágico.');
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.includes('@') || !password) {
+      setError('Informe email e senha.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.secaapp.com').replace(/\/$/, '');
+      const res = await fetch(`${baseUrl}/auth/login-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Erro ao entrar.');
+      }
+
+      const data = await res.json();
+      if (!data.accessToken) {
+        throw new Error('Falha ao autenticar sua sessão.');
+      }
+
+      login(data.accessToken);
+      router.replace('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Houve um erro ao entrar.');
+    } finally {
       setLoading(false);
     }
   };
@@ -63,10 +106,35 @@ export default function LoginPage() {
             SECA<span className="text-[#21C55D]">APP</span>
           </p>
           <h1 className="text-[32px] font-black text-white tracking-tight leading-tight">Acesso Assinantes</h1>
-          <p className="text-slate-400 font-medium mt-2">Validação rápida em 1 clique. Zero senhas.</p>
+          <p className="text-slate-400 font-medium mt-2">Entre com sua senha ou receba um link seguro no email.</p>
         </div>
 
         <div className="bg-[#111] border border-white/10 rounded-[28px] p-8 shadow-2xl relative z-10">
+          {!success && (
+            <div className="mb-6 rounded-2xl bg-[#1A1A1A] p-1 grid grid-cols-2 gap-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('password');
+                  setError('');
+                }}
+                className={`rounded-[1rem] py-3 text-sm font-black transition-all ${mode === 'password' ? 'bg-white text-slate-900' : 'text-slate-400'}`}
+              >
+                Entrar com senha
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('magic');
+                  setError('');
+                }}
+                className={`rounded-[1rem] py-3 text-sm font-black transition-all ${mode === 'magic' ? 'bg-white text-slate-900' : 'text-slate-400'}`}
+              >
+                Receber link
+              </button>
+            </div>
+          )}
+
           {success ? (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
@@ -82,7 +150,7 @@ export default function LoginPage() {
               </p>
             </motion.div>
           ) : (
-            <form onSubmit={handleMagicLink} className="space-y-6">
+            <form onSubmit={mode === 'password' ? handlePasswordLogin : handleMagicLink} className="space-y-6">
               
               <div className="space-y-2">
                 <label className="text-[13px] font-bold text-slate-400 uppercase tracking-widest pl-1">
@@ -103,6 +171,22 @@ export default function LoginPage() {
                 </div>
               </div>
 
+              {mode === 'password' && (
+                <div className="space-y-2">
+                  <label className="text-[13px] font-bold text-slate-400 uppercase tracking-widest pl-1">
+                    Sua senha
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Digite sua senha"
+                    autoComplete="current-password"
+                    className="w-full bg-[#1A1A1A] border border-white/5 rounded-2xl py-4 px-4 text-white font-medium placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all font-sans"
+                  />
+                </div>
+              )}
+
               {error && (
                 <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-sm font-semibold rounded-xl p-3 flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
@@ -118,18 +202,18 @@ export default function LoginPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" strokeWidth={2.5} />
-                    Validando...
+                    Enviando...
                   </>
                 ) : (
                   <>
-                    Receber Acesso <ArrowRight className="w-5 h-5" strokeWidth={2.5} />
+                    {mode === 'password' ? 'Entrar Agora' : 'Receber Acesso'} <ArrowRight className="w-5 h-5" strokeWidth={2.5} />
                   </>
                 )}
               </button>
               
               <div className="flex items-center justify-center gap-2 pt-2 text-slate-500 font-medium text-xs">
                 <ShieldCheck className="w-4 h-4" />
-                <p>Nenhuma senha obrigatória. Acesso blindado.</p>
+                <p>{mode === 'password' ? 'Senha simples, acesso rápido.' : 'Link seguro enviado para o seu email.'}</p>
               </div>
             </form>
           )}

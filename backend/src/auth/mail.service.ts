@@ -1,5 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+
+interface BrevoSendEmailResponse {
+  messageId?: string;
+}
 
 @Injectable()
 export class MailService {
@@ -7,14 +11,19 @@ export class MailService {
 
   constructor(private config: ConfigService) {}
 
-  async sendMagicLink(email: string, token: string): Promise<void> {
+  async sendMagicLink(
+    email: string,
+    token: string,
+  ): Promise<{ provider: 'brevo'; messageId: string }> {
     const appUrl = this.config.get<string>('APP_URL') || 'https://secaapp.com';
     const link = `${appUrl}/auth/verify?token=${token}`;
     const brevoApiKey = this.config.get<string>('BREVO_API_KEY');
 
     if (!brevoApiKey) {
       this.logger.error('BREVO_API_KEY não configurada no .env!');
-      return;
+      throw new InternalServerErrorException(
+        'Servico de email indisponivel no momento.',
+      );
     }
 
     const payload = {
@@ -52,11 +61,34 @@ export class MailService {
       if (!response.ok) {
         const errorData = await response.text();
         this.logger.error(`Falha no envio via Brevo: ${response.status} - ${errorData}`);
+        throw new InternalServerErrorException(
+          'Falha ao enviar email de acesso.',
+        );
       } else {
-        this.logger.log(`E-mail Magico enviado para ${email} usando a API HTTP Brevo!`);
+        const data = (await response.json()) as BrevoSendEmailResponse;
+
+        if (!data?.messageId) {
+          this.logger.error(
+            `Resposta inesperada da Brevo ao enviar para ${email}: ${JSON.stringify(data)}`,
+          );
+          throw new InternalServerErrorException(
+            'Falha ao confirmar envio do email de acesso.',
+          );
+        }
+
+        this.logger.log(
+          `E-mail Magico enviado para ${email} via Brevo. messageId=${data.messageId}`,
+        );
+        return { provider: 'brevo', messageId: data.messageId };
       }
     } catch (error) {
       this.logger.error('Exceção ao enviar via Brevo HTTP API:', error);
+      if (error instanceof InternalServerErrorException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'Falha ao enviar email de acesso.',
+      );
     }
   }
 }

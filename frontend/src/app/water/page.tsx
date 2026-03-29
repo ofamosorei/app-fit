@@ -1,13 +1,14 @@
 'use client';
 
 import { useProtocol } from '@/context/ProtocolContext';
+import { getLocalDateKey, getStartOfLocalDay } from '@/lib/date';
 import { motion } from 'framer-motion';
 import { Droplets, Plus, RotateCcw } from 'lucide-react';
 
-const getToday = () => new Date().toISOString().split('T')[0];
+const getToday = () => getLocalDateKey();
 
 const getCurrentWeek = () => {
-  const today = new Date();
+  const today = getStartOfLocalDay();
   // getDay(): 0=Sun, 1=Mon ... 6=Sat
   // We want Mon(1) as first day, so offset accordingly
   const day = today.getDay();
@@ -18,15 +19,16 @@ const getCurrentWeek = () => {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    return d.toISOString().split('T')[0];
+    return getLocalDateKey(d);
   });
 };
 
 const DAY_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
 export default function WaterPage() {
-  const { waterLog, waterConsumed, waterTarget, addWater, undoWater, plan, weight } = useProtocol();
+  const { waterLog, waterEventsLog, waterConsumed, waterTarget, addWater, undoWater } = useProtocol();
   const pct = Math.min(100, Math.max(0, (waterConsumed / waterTarget) * 100));
+  const lastWaterAmount = (waterEventsLog[getToday()] || []).at(-1) || 0;
 
   const last7 = getCurrentWeek();
   const maxLog = Math.max(...last7.map(d => waterLog[d] || 0), waterTarget);
@@ -99,13 +101,13 @@ export default function WaterPage() {
       </div>
 
       {/* Botão Desfazer */}
-      {waterConsumed > 0 && (
+      {lastWaterAmount > 0 && (
         <button
-          onClick={() => undoWater(250)}
+          onClick={() => undoWater()}
           className="w-full flex items-center justify-center gap-2 py-3.5 rounded-[1.5rem] border border-slate-200 bg-white text-slate-500 font-bold text-sm hover:border-red-200 hover:text-red-500 hover:bg-red-50 transition-all active:scale-[0.98] shadow-[0_4px_20px_rgb(0,0,0,0.02)] mb-6"
         >
           <RotateCcw className="w-4 h-4" strokeWidth={2.5} />
-          Desfazer último copo (250ml)
+          Desfazer última adição ({lastWaterAmount}ml)
         </button>
       )}
 

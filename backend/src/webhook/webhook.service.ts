@@ -1,17 +1,45 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { UserService } from '../user/user.service';
 import { AuthService } from '../auth/auth.service';
 
 interface KiwifyPayload {
   event: string;
+  status?: string;
+  order_status?: string;
+  id?: string;
+  order_id?: string;
+  token?: string;
+  customer?: {
+    email?: string;
+    name?: string;
+    full_name?: string;
+  };
+  Customer?: {
+    email?: string;
+    name?: string;
+    full_name?: string;
+  };
   data?: {
     id?: string;
     order_id?: string;
     customer?: {
       email?: string;
       name?: string;
+      full_name?: string;
     };
   };
+}
+
+interface KiwifyRequestAuth {
+  queryToken?: string;
+  bodyToken?: string;
+  headerToken?: string | string[];
 }
 
 @Injectable()
@@ -19,11 +47,17 @@ export class WebhookService {
   private readonly logger = new Logger(WebhookService.name);
 
   constructor(
+    private readonly configService: ConfigService,
     private readonly userService: UserService,
     private readonly authService: AuthService,
   ) {}
 
-  async handleKiwify(payload: any): Promise<{ received: boolean }> {
+  async handleKiwify(
+    payload: KiwifyPayload,
+    auth: KiwifyRequestAuth,
+  ): Promise<{ received: boolean }> {
+    this.validateWebhookToken(auth);
+
     // Log completo para debug em produção
     this.logger.log(`[Kiwify] Payload recebido: ${JSON.stringify(payload)}`);
 
@@ -61,12 +95,40 @@ export class WebhookService {
 
     // 5. Disparar email de boas-vindas com Magic Link
     try {
-      await this.authService.sendMagicLink(user.email);
-      this.logger.log(`[Kiwify] Email de acesso enviado com sucesso para ${user.email}`);
+      const delivery = await this.authService.sendMagicLink(user.email);
+      this.logger.log(
+        `[Kiwify] Email de acesso enviado com sucesso para ${user.email} | provider=${delivery.provider} | messageId=${delivery.messageId}`,
+      );
     } catch (error) {
       this.logger.error(`[Kiwify] Erro ao enviar email para ${user.email}`, error);
     }
 
     return { received: true };
+  }
+
+  private validateWebhookToken(auth: KiwifyRequestAuth): void {
+    const expectedToken = this.configService.get<string>('KIWIFY_WEBHOOK_TOKEN')?.trim();
+
+    if (!expectedToken) {
+      throw new InternalServerErrorException(
+        'KIWIFY_WEBHOOK_TOKEN não configurado no servidor.',
+      );
+    }
+
+    const candidates = [
+      auth.headerToken,
+      auth.queryToken,
+      auth.bodyToken,
+    ]
+      .flatMap((value) => (Array.isArray(value) ? value : [value]))
+      .map((value) => value?.toString().trim())
+      .filter((value): value is string => Boolean(value));
+
+    const isValid = candidates.some((value) => value === expectedToken);
+
+    if (!isValid) {
+      this.logger.warn('[Kiwify] Webhook rejeitado por token inválido ou ausente.');
+      throw new UnauthorizedException('Webhook não autorizado.');
+    }
   }
 }

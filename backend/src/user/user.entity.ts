@@ -20,6 +20,12 @@ export class User {
   @Column({ default: false })
   hasPaid: boolean;
 
+  @Column({ default: false })
+  hasPassword: boolean;
+
+  @Column({ nullable: true, select: false })
+  passwordHash: string;
+
   @Column({ unique: true, nullable: true })
   kiwifyOrderId: string;
 
@@ -65,6 +71,18 @@ export class User {
   // Plano Nutricional Guardado
   @Column({ type: 'jsonb', nullable: true })
   plan: any;
+
+  @Column({ type: 'jsonb', nullable: true })
+  progress: any;
+
+  @Column({ type: 'jsonb', nullable: true })
+  waterLog: any;
+
+  @Column({ type: 'jsonb', nullable: true })
+  waterEventsLog: any;
+
+  @Column({ type: 'jsonb', nullable: true })
+  mealActivityLog: any;
 
   @CreateDateColumn()
   createdAt: Date;

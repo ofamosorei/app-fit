@@ -116,7 +116,10 @@ const PUBLIC_ROUTES = [
   '/login',
   '/auth/verify',
   '/paywall',
-  '/onboarding'
+  '/onboarding',
+  '/dashboard-preview',
+  '/plan-preview',
+  '/plan-preview-2'
 ];
 
 const AuthGuard = ({ children }: { children: ReactNode }) => {
@@ -126,6 +129,13 @@ const AuthGuard = ({ children }: { children: ReactNode }) => {
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
+    const isPublic = PUBLIC_ROUTES.includes(pathname);
+
+    if (isPublic) {
+      setIsChecking(false);
+      return;
+    }
+
     // Checa se a rota atual começa com alguma das rotas protegidas
     const isProtected = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
     

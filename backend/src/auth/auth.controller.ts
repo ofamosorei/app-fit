@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Body, Query, BadRequestException, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { RateLimit } from '../security/rate-limit.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -8,6 +9,7 @@ export class AuthController {
 
   // POST /auth/magic-link
   // Body: { "email": "usuario@gmail.com" }
+  @RateLimit({ limit: 5, windowMs: 10 * 60 * 1000 })
   @Post('magic-link')
   async requestMagicLink(@Body('email') email: string) {
     if (!email || !email.includes('@')) {
@@ -26,13 +28,17 @@ export class AuthController {
     return this.authService.verifyMagicLink(token);
   }
 
-  // POST /auth/demo-login BYPASS TEMPORÁRIO PARA GRAVAÇÃO DE VÍDEOS
-  @Post('demo-login')
-  async demoLogin(@Body('email') email: string) {
-    if (!email || !email.includes('@')) {
-      throw new BadRequestException('Email inválido.');
+  @RateLimit({ limit: 10, windowMs: 10 * 60 * 1000 })
+  @Post('login-password')
+  async loginWithPassword(@Body() body: { email: string; password: string }) {
+    const email = body?.email?.toLowerCase().trim();
+    const password = body?.password;
+
+    if (!email || !email.includes('@') || !password) {
+      throw new BadRequestException('Informe email e senha.');
     }
-    return this.authService.demoLogin(email.toLowerCase().trim());
+
+    return this.authService.loginWithPassword(email, password);
   }
 
   // GET /auth/me
@@ -48,8 +54,15 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('me/profile')
   async updateProfile(@Request() req: any, @Body() updateData: any) {
-    // Retira o plano do update direto por segurança, se quiser evitar sobreescrita
-    const { plan, ...safeData } = updateData;
-    return this.authService.updateUserProfile(req.user.id, safeData);
+    return this.authService.updateUserProfile(req.user.id, updateData);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('me/password')
+  async setPassword(
+    @Request() req: any,
+    @Body() body: { password: string; confirmPassword: string },
+  ) {
+    return this.authService.setPassword(req.user.id, body?.password, body?.confirmPassword);
   }
 }

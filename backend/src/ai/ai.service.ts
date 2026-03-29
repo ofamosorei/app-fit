@@ -187,13 +187,16 @@ SUCO DETOX (quando aplicável): insira como PRIMEIRA refeição com time="06:30"
 CHÁ SECA BARRIGA (quando aplicável): insira imediatamente ANTES do almoço com time="12:00", title="Chá Seca Barriga", description="🍵 Tome 1 xícara 30 minutos antes do almoço: chá verde, hibisco ou cavalinha. Sem açúcar."
 
 ## REGRAS DE QUALIDADE DO CARDÁPIO
-1. Use APENAS alimentos simples, baratos e acessíveis no Brasil: frango, peixe, ovos, carne moída magra, arroz integral, aveia, batata doce, feijão, lentilha, frutas comuns, verduras de mercado.
-2. NUNCA repita o mesmo prato principal em dias consecutivos.
-3. Varie as fontes de proteína ao longo da semana: frango, ovo, peixe, carne vermelha magra, leguminosas.
-4. Varie os carboidratos: batata doce, arroz integral, mandioca, aveia, inhame.
-5. Para cada refeição principal (café, almoço, jantar) inclua: alimentos + quantidades em gramas + calorias estimadas + dica de preparo "💡 [dica]".
-6. A soma calórica de cada dia deve ser PRÓXIMA de ${caloricTarget} kcal.
-7. Os lanches podem se repetir mas não em dias consecutivos.
+1. Use APENAS alimentos simples, baratos e acessíveis no Brasil: frango, peixe, ovos, carne moída magra, arroz, feijão, aveia, batata doce, mandioca, frutas comuns, verduras de mercado.
+2. O cardápio precisa parecer COMIDA BRASILEIRA DE VERDADE, e não dieta gringa ou fitness artificial.
+3. REGRA PRINCIPAL DE BRASILIDADE: no almoço e no jantar, use arroz + feijão como base padrão na MAIORIA dos dias. Só retire ou substitua essa dupla quando houver restrição clínica explícita (ex.: diabetes com arroz branco, doença renal com feijão, alergia) ou para trazer variação pontual. Mesmo quando variar, mantenha a lógica de prato brasileiro simples.
+4. Quando houver arroz + feijão, prefira descrever com medidas e linguagem natural do Brasil, por exemplo: "3 colheres de sopa de arroz + 1 concha pequena de feijão", junto da proteína e salada/legumes.
+5. NUNCA repita o mesmo prato principal em dias consecutivos.
+6. Varie as fontes de proteína ao longo da semana: frango, ovo, peixe, carne vermelha magra, leguminosas.
+7. Varie os acompanhamentos ao redor da base brasileira: salada, legumes cozidos, mandioca, batata doce, arroz integral quando fizer sentido.
+8. Para cada refeição principal (café, almoço, jantar) inclua: alimentos + quantidades em gramas OU medidas caseiras brasileiras + calorias estimadas + dica de preparo "💡 [dica]".
+9. A soma calórica de cada dia deve ser PRÓXIMA de ${caloricTarget} kcal.
+10. Os lanches podem se repetir mas não em dias consecutivos.
 
 ## ESTRUTURA ESPERADA DO JSON (siga exatamente)
 {
@@ -381,9 +384,9 @@ Seja realista nas quantidades. Retorne SOMENTE o JSON.`
       { time: "06:30", title: "Suco Detox", description: "🥬 Tome em jejum: 1 folha de couve + ½ maçã + suco de 1 limão + 200ml de água. Aguarde 20min.", completed: false },
       { time: "08:00", title: "Café da manhã", description: "2 ovos mexidos (140kcal) + café sem açúcar. 💡 Mexa os ovos em frigideira antiaderente sem óleo.", completed: false },
       { time: "12:00", title: "Chá Seca Barriga", description: "🍵 1 xícara de chá verde ou hibisco sem açúcar, 30min antes do almoço.", completed: false },
-      { time: "12:30", title: "Almoço", description: "Frango grelhado (120g, 200kcal) + salada à vontade + arroz integral (3 col). 💡 Tempere o frango com limão e alho.", completed: false },
+      { time: "12:30", title: "Almoço", description: "Frango grelhado (120g, 200kcal) + 3 colheres de sopa de arroz + 1 concha pequena de feijão + salada à vontade. 💡 Tempere o frango com limão e alho.", completed: false },
       { time: "16:00", title: "Lanche da Tarde", description: "Iogurte natural (150g, 90kcal) + 1 fruta. 💡 Prefira frutas com baixo índice glicêmico.", completed: false },
-      { time: "19:30", title: "Jantar", description: "Omelete simples (2 ovos, 140kcal) + legumes cozidos. 💡 Adicione cúrcuma aos ovos para potencial anti-inflamatório.", completed: false }
+      { time: "19:30", title: "Jantar", description: "Carne moída refogada (100g, 180kcal) + 2 colheres de sopa de arroz + 1/2 concha de feijão + legumes cozidos. 💡 Refogue com cebola, alho e cheiro-verde para mais sabor.", completed: false }
     ];
 
     return {

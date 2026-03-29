@@ -97,6 +97,41 @@ export default function LandingPage() {
     </button>
   );
 
+  const featuredBenefits = [
+    {
+      icon: Camera,
+      title: 'Scanner IA Visual',
+      desc: 'Tire foto do prato e descubra calorias sem parar para digitar tudo manualmente.',
+      color: 'from-emerald-500/20 to-emerald-100',
+      iconColor: 'text-emerald-500',
+      badge: 'Mais desejado',
+    },
+    {
+      icon: ShoppingCart,
+      title: 'Lista de Compras Automática',
+      desc: 'Receba a semana organizada para comprar o necessário sem improviso e sem desperdício.',
+      color: 'from-indigo-500/20 to-indigo-100',
+      iconColor: 'text-indigo-500',
+      badge: 'Semana pronta',
+    },
+    {
+      icon: Activity,
+      title: 'Cardápios Semanais IA',
+      desc: 'Abra o app e siga um plano prático com refeições e substituições já pensadas para você.',
+      color: 'from-red-500/20 to-red-100',
+      iconColor: 'text-red-500',
+      badge: 'Rotina guiada',
+    },
+  ];
+
+  const supportingBenefits = [
+    { icon: Repeat, title: 'Variações Imediatas', desc: 'Troque alimentos sem perder a linha do protocolo.', color: 'text-sky-500 bg-sky-50' },
+    { icon: Droplets, title: 'Chás Seca Barriga Secretos', desc: 'Chás e receitas estratégicas para desinchar e manter o ritmo.', color: 'text-purple-500 bg-purple-50' },
+    { icon: ShieldCheck, title: 'Escudo Protetivo 24h', desc: 'Avisos e apoio visual para não sair do foco.', color: 'text-teal-500 bg-teal-50' },
+    { icon: Clock, title: 'Desbloqueio de Janelas', desc: 'Horários e hidratação mais organizados no dia a dia.', color: 'text-orange-500 bg-orange-50' },
+    { icon: Award, title: 'Prêmios Secretos', desc: 'Pequenas recompensas para manter constância.', color: 'text-yellow-600 bg-yellow-50' },
+  ];
+
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-indigo-500/20 overflow-x-hidden">
 
@@ -236,8 +271,40 @@ export default function LandingPage() {
               <img
                 src="/mockup-dieta-restritiva.png"
                 alt="Dieta Restritiva"
-                className="w-full h-full object-cover object-center absolute inset-0 z-0 rounded-[32px]"
+                className="w-full h-full object-cover object-center absolute inset-0 z-0 rounded-[32px] opacity-80"
               />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/25 to-black/80 z-10" />
+
+              <div className="absolute top-16 left-5 z-20 rotate-[-8deg] rounded-2xl border border-red-400/30 bg-red-500/15 px-4 py-3 shadow-[0_15px_40px_rgba(239,68,68,0.18)] backdrop-blur-md">
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-red-300">Restrição Total</p>
+                <p className="mt-1 text-sm font-bold text-white">Sem arroz, sem pão, sem erro.</p>
+              </div>
+
+              <div className="absolute right-4 top-32 z-20 rotate-[7deg] rounded-2xl border border-white/10 bg-white/10 px-4 py-3 shadow-[0_15px_40px_rgba(0,0,0,0.2)] backdrop-blur-md">
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-300">Mercado</p>
+                <p className="mt-1 text-sm font-bold text-white">23 itens difíceis de achar</p>
+              </div>
+
+              <div className="absolute bottom-24 left-5 right-5 z-20 rounded-[28px] border border-white/10 bg-black/45 p-5 shadow-[0_25px_60px_rgba(0,0,0,0.35)] backdrop-blur-md">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.28em] text-red-300">Cansaço mental</p>
+                    <p className="mt-2 max-w-[180px] text-base font-black leading-tight text-white">
+                      Muita regra, pouca vida real.
+                    </p>
+                  </div>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/20 text-red-300">
+                    <TrendingDown className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  {['Pesar tudo', 'Contar tudo', 'Desistir de novo'].map((item) => (
+                    <div key={item} className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-center text-[11px] font-bold text-slate-300">
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </PhoneMockup>
           </motion.div>
           <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="space-y-6 text-center sm:text-left">
@@ -259,8 +326,8 @@ export default function LandingPage() {
       <section className="bg-[#0A0A0A] border-t border-white/5 py-24 sm:py-36 px-6 relative overflow-hidden">
         <div className="absolute top-0 right-1/4 w-[40%] h-[400px] bg-emerald-500/10 blur-[140px] pointer-events-none rounded-full"></div>
 
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 sm:gap-20 items-center">
-          <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="space-y-6 text-center md:text-left order-2 md:order-1 relative z-10">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 sm:gap-20 items-center">
+          <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="space-y-6 text-center md:text-left order-1 md:order-1 relative z-10">
             <span className="text-emerald-500 font-black tracking-widest uppercase text-[14px]">O Scan Tecnológico</span>
             <h2 className="text-[34px] sm:text-[48px] leading-[1.1] font-black tracking-tight text-white">
               Tire uma foto, tenha a resposta em dois segundos.
@@ -276,12 +343,21 @@ export default function LandingPage() {
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="order-1 md:order-2 flex justify-center">
-            <div className="relative w-full max-w-[500px] origin-center transform transition-all duration-700 hover:scale-[1.02]">
+          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="order-2 md:order-2 flex justify-center">
+            <div className="relative w-full max-w-[320px] sm:max-w-[380px] md:max-w-[460px] origin-center transform transition-all duration-700 hover:scale-[1.02]">
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-indigo-500 rounded-[34px] opacity-20 blur-xl"></div>
               <div className="relative rounded-[32px] overflow-hidden shadow-2xl border border-white/10 bg-black group">
-                {/* Generated Split-Screen HUD */}
-                <img src="/teste_scanner_1774677997387.png" alt="Scanner de Alimentos HUD" className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-1000 ease-out" />
+                <video
+                  className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                >
+                  <source src="/scanner-demo.webm" type="video/webm" />
+                  <source src="/scanner-demo.mp4" type="video/mp4" />
+                </video>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
               </div>
             </div>
@@ -301,18 +377,33 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 sm:gap-x-8 gap-y-16">
-            {[
-              { icon: ShoppingCart, title: 'Lista de Compras Automática', desc: 'Chegue na feira sabendo tudo que precisa pro protocolo de 30 dias sem faltar nada.', color: 'text-indigo-500 bg-indigo-50' },
-              { icon: Repeat, title: 'Variações Imediatas', desc: 'Não tem frango? Deslize e substitua na mesma hora por ovos ou peixe com exatidão.', color: 'text-sky-500 bg-sky-50' },
-              { icon: Camera, title: 'Scanner IA Visual', desc: 'Tire fotos e jogue fora o trabalho robótico de digitar calorias manualmente.', color: 'text-emerald-500 bg-emerald-50' },
-              { icon: Droplets, title: 'Receitas Detox Turbo', desc: 'Sucos exatos e chás que funcionam limpando e desinchando o corpo em 48h.', color: 'text-purple-500 bg-purple-50' },
-              { icon: Activity, title: 'Cardápios Semanais IA', desc: 'Sua rotina programada pra semana. O seu único trabalho é consumir e ver secar.', color: 'text-red-500 bg-red-50' },
-              { icon: ShieldCheck, title: 'Escudo Protetivo 24h', desc: 'Avisos amigáveis e flexibilidade diária pra você aguentar e criar foco constante.', color: 'text-teal-500 bg-teal-50' },
-              { icon: Clock, title: 'Desbloqueio de Janelas', desc: 'Ajuste fácil de hidratação e horários pra esmagar a falsa fome mental do meio dia.', color: 'text-orange-500 bg-orange-50' },
-              { icon: Award, title: 'Prêmios Secretos', desc: 'Receba recompensas reais ao atingir suas micrometas ao longo desse mês.', color: 'text-yellow-600 bg-yellow-50' },
-            ].map((f, i) => (
-              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} viewport={{ once: true }} key={i} className="flex flex-col items-center text-center space-y-4 group">
+          <div className="grid gap-6 md:grid-cols-3">
+            {featuredBenefits.map((f, i) => (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06 }}
+                viewport={{ once: true }}
+                key={f.title}
+                className="group rounded-[30px] border border-slate-200 bg-white p-7 text-left shadow-[0_18px_45px_-24px_rgba(15,23,42,0.25)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_28px_60px_-26px_rgba(15,23,42,0.28)]"
+              >
+                <div className="mb-5 flex items-start justify-between gap-4">
+                  <div className={`flex h-16 w-16 items-center justify-center rounded-[22px] bg-gradient-to-br ${f.color} shadow-sm`}>
+                    <f.icon className={`h-8 w-8 ${f.iconColor}`} />
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-slate-500">
+                    {f.badge}
+                  </span>
+                </div>
+                <h3 className="text-[22px] font-black tracking-tight text-slate-900">{f.title}</h3>
+                <p className="mt-3 text-[15px] font-medium leading-relaxed text-slate-500">{f.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 sm:gap-x-6 gap-y-10">
+            {supportingBenefits.map((f, i) => (
+              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} viewport={{ once: true }} key={f.title} className="flex flex-col items-center text-center space-y-4 group">
                 <div className={`w-[60px] h-[60px] rounded-[18px] flex items-center justify-center ${f.color} shadow-sm group-hover:scale-110 transition-transform duration-300`}>
                   <f.icon className="w-7 h-7" />
                 </div>
@@ -330,79 +421,57 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto grid md:grid-cols-[4fr_5fr] gap-12 sm:gap-20 items-center relative z-10">
           <div className="w-full aspect-[4/5] bg-[#111] rounded-[36px] overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] border border-white/10 flex items-center justify-center relative translate-y-0 group hover:-translate-y-2 transition-transform duration-700">
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
-            <img src="/dra.png" alt="Dra. Especialista" className="w-full h-full object-cover object-top opacity-100" />
+            <img src="/dra.png" alt="Jamilly Rodrigues" className="w-full h-full object-cover object-top opacity-100" />
             <div className="absolute bottom-6 left-6 z-20">
               <div className="flex items-center gap-2 mb-2">
                 <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                <span className="text-emerald-400 font-bold text-xs uppercase tracking-widest bg-black/50 px-2 py-1 rounded backdrop-blur-md">Método Clínico Validado</span>
+                <span className="text-emerald-400 font-bold text-xs uppercase tracking-widest bg-black/50 px-2 py-1 rounded backdrop-blur-md">Supervisão Nutricional</span>
               </div>
             </div>
           </div>
 
           <div className="space-y-8 text-center md:text-left">
             <div className="inline-block bg-indigo-500/20 text-indigo-400 font-bold px-4 py-1.5 rounded-full text-[13px] uppercase tracking-widest border border-indigo-500/30">
-              Aprovado por Nutricionistas
+              Autoridade do Protocolo
             </div>
             <h2 className="text-[32px] md:text-[42px] font-black leading-tight tracking-tight">
-              "Emagrecer sustentavelmente nunca foi sobre passar fome, é sobre organizar a confusão alimentar com método científico."
+              “Você não precisa continuar se olhando no espelho e sentindo que perdeu o controle do próprio corpo.”
             </h2>
             <p className="text-lg sm:text-[20px] text-slate-400 leading-relaxed font-medium">
-              "Minha experiência de clínica mostra que um cardápio denso e restritivo afasta os pacientes da meta dos -10kg. A chave é aderência. O SECA APP substitui a fricção de contar calorias manualmente pela automação, agindo como o 'nutricionista residente' no seu celular."
+              Com supervisão da nutricionista Jamilly Rodrigues, CRN 16822, o SECA APP foi pensado para transformar confusão, culpa e recomeços em uma rotina simples, guiada e possível de seguir. A proposta do protocolo é tirar o peso mental de decidir tudo sozinha e devolver clareza ao que fazer no dia a dia.
+            </p>
+            <p className="text-lg sm:text-[20px] text-slate-300 leading-relaxed font-bold">
+              Em vez de mais uma dieta que te pressiona, te culpa e te faz desistir, o app organiza sua alimentação para você voltar a sentir direção, leveza e progresso real no próprio corpo.
             </p>
             <div className="pt-6 mt-6 border-t border-slate-800">
-              <p className="font-black text-[24px] text-white tracking-tight">Dra. Sarah Jenkins</p>
-              <p className="text-indigo-400 font-bold text-[15px] mt-1 tracking-wide">Especialista Clínica RDN, LDN — CRN-X 00000</p>
+              <p className="font-black text-[20px]">Jamilly Rodrigues</p>
+              <p className="text-slate-500 font-bold text-[13px] uppercase tracking-widest mt-1">Nutricionista responsável pelo protocolo • CRN 16822</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Dobra 6: Resultado Emocional "Vida Real" (Nova Seção) */}
-      <section className="bg-slate-50 py-24 sm:py-36 px-6 overflow-hidden relative border-b border-slate-200">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-          <div className="order-2 md:order-1 space-y-8 text-center md:text-left">
-            <span className="text-emerald-500 font-black tracking-widest uppercase text-[14px]">Resultado Para a Vida</span>
-            <h2 className="text-[36px] sm:text-[50px] font-black leading-[1.05] tracking-tight text-slate-900 drop-shadow-sm">
-              Perder 12kg e recuperar sua energia e autoestima <span className="text-emerald-600">sem pisar na academia</span>.
+      {/* Provas sociais */}
+      <section className="bg-white py-24 sm:py-36 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="max-w-2xl mx-auto text-center space-y-4 mb-14">
+            <span className="text-emerald-500 font-black tracking-widest uppercase text-[14px]">Resultados Reais</span>
+            <h2 className="text-[34px] sm:text-[48px] font-black tracking-tight text-slate-900 leading-[1.1]">
+              Histórias de quem entrou, seguiu e sentiu diferença no corpo e na rotina
             </h2>
-            <p className="text-slate-500 text-lg sm:text-[22px] font-medium leading-relaxed">
-              O objetivo do protocolo não é te transformar num atleta focado em punição diária, mas sim regularizar o seu metabolismo para um estado de queima natural. Vista aquela calça que estava escondida no armário, levante do sofá com mais ânimo e sorria sentindo a leveza de um corpo destravado.
-            </p>
-            <div className="pt-4 flex justify-center md:justify-start">
-              {primaryBtn("COMEÇAR MEU PROTOCOLO")}
-            </div>
           </div>
-          
-          <div className="order-1 md:order-2 relative w-full h-[550px] rounded-[32px] overflow-hidden shadow-2xl border-[10px] border-white group transform hover:rotate-1 transition-transform duration-700">
-            <div className="absolute inset-0 bg-slate-900/10 mix-blend-multiply z-10 transition-opacity group-hover:opacity-0"></div>
-            <img src="/vida_real_feliz_1774677909624.png" alt="Mulher feliz lendo livro" className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-1000" />
-            
-            {/* Tag flutuante emocional */}
-            <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-md px-5 py-3 rounded-[20px] shadow-xl z-20 flex items-center gap-3 animate-fade-in-up">
-              <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
-              <p className="font-bold text-slate-800 text-sm">-12 KG no espelho</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Testimonials */}
-      <section className="bg-white py-24 sm:py-32 px-6 text-center border-b border-slate-100">
-        <div className="max-w-5xl mx-auto space-y-16">
-          <div className="space-y-4">
-            <h2 className="text-[34px] sm:text-[46px] font-black text-slate-900 tracking-tight leading-[1.1]">Perder 10kg virou realidade palpável</h2>
-          </div>
-          <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch h-full">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-stretch">
             <div className="w-full md:w-1/3 flex flex-col items-center">
-              <div className="w-full bg-slate-50 rounded-[32px] overflow-hidden relative group flex flex-col p-8 sm:p-10 shadow-sm border border-slate-200 justify-between items-start text-left flex-shrink-0 transition-transform hover:-translate-y-2 h-[420px]">
+              <div className="w-full bg-white rounded-[32px] overflow-hidden relative group flex flex-col p-8 sm:p-10 shadow-lg border-2 border-slate-50 justify-between items-start text-left h-[420px]">
                 <div className="text-yellow-400 flex gap-1"><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /></div>
                 <p className="font-bold text-slate-700 text-[18px] leading-relaxed italic border-t border-slate-200 pt-6 my-6 flex-1">"Fui pro mercado, abri a lista das minhas compras no app. Resolvido. Em 4 semanas já estava com -6kg bebendo as receitas certas."</p>
                 <div className="w-full mt-auto">
                   <div className="flex items-center gap-4">
-                    <img src="/avatar_bruna_1774678119619.png" alt="Avatar Bruna T." className="w-14 h-14 rounded-full object-cover shadow-sm ring-2 ring-emerald-500/20" />
+                    <img src="/avatar_bruna_1774678119619.png" alt="Avatar Bruna" className="w-14 h-14 rounded-full object-cover shadow-sm ring-2 ring-emerald-500/20" />
                     <div>
-                      <div className="font-black text-slate-900 text-lg leading-tight">Bruna T.</div>
-                      <div className="text-emerald-500 font-bold text-[11px] uppercase mt-0.5 bg-emerald-50 px-2 py-0.5 rounded inline-block">-6 KG (MÊS 1)</div>
+                      <div className="font-black text-slate-900 text-lg leading-tight">Bruna C.</div>
+                      <div className="text-emerald-500 font-bold text-[11px] uppercase mt-0.5 bg-emerald-50 px-2 py-0.5 rounded inline-block">-6 KG EM 4 SEMANAS</div>
                     </div>
                   </div>
                 </div>
@@ -410,7 +479,7 @@ export default function LandingPage() {
             </div>
 
             <div className="w-full md:w-1/3 flex flex-col items-center">
-              <div className="w-full bg-slate-50 rounded-[32px] overflow-hidden relative group flex flex-col p-8 sm:p-10 shadow-sm border border-slate-200 justify-between items-start text-left flex-shrink-0 transition-transform hover:-translate-y-2 h-[420px]">
+              <div className="w-full bg-white rounded-[32px] overflow-hidden relative group flex flex-col p-8 sm:p-10 shadow-lg border-2 border-slate-50 justify-between items-start text-left h-[420px]">
                 <div className="text-yellow-400 flex gap-1"><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /><Star className="fill-yellow-400 w-5 h-5" /></div>
                 <p className="font-bold text-slate-700 text-[18px] leading-relaxed italic border-t border-slate-200 pt-6 my-6 flex-1">"A facilidade brutal do Scanner apagou meu medo de falhar ao sair num sábado à noite."</p>
                 <div className="w-full mt-auto">

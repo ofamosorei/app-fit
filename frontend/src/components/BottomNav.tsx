@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const hiddenOn = ['/', '/onboarding', '/paywall'];
+  const hiddenOn = ['/', '/onboarding', '/paywall', '/login', '/auth/verify', '/auth/create-password', '/dashboard-preview', '/plan-preview', '/plan-preview-2'];
   
   if (hiddenOn.includes(pathname)) return null;
 

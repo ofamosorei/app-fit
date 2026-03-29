@@ -11,10 +11,15 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(`${baseUrl}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}${endpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch {
+    throw new Error('Falha de conexao com o servidor. Tente novamente em instantes.');
+  }
 
   if (!response.ok) {
     let errorMessage = 'Erro ao processar requisição.';
@@ -25,8 +30,8 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
       // Falha ao fazer parse do json de erro
     }
     
-    // Se a api retornar 401 ou 403, podemos forçar o logout (limpar localStorage) e recarregar
-    if (response.status === 401 || response.status === 403) {
+    // 401 indica sessão inválida; 403 pode ser apenas falta de acesso pago.
+    if (response.status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('@appfit:token');
         window.location.href = '/login';
